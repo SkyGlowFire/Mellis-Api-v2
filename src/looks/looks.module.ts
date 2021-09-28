@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { LooksService } from './looks.service';
 import { LooksController } from './looks.controller';
 import { FilesModule } from 'src/files/files.module';
-import { Look } from 'src/casl/casl-ability.factory';
-import { LookSchema } from './schemas/look.schema';
+import { Look, LookSchema } from './schemas/look.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CaslModule } from 'src/casl/casl.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   providers: [LooksService],

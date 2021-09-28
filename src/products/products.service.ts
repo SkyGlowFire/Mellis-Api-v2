@@ -39,10 +39,10 @@ export interface IProductsResponse{
 export class ProductsService {
     constructor(
         @InjectModel(Product.name) private productModel: Model<ProductDocument>, 
-        private categoriesService: CategoriesService,
+        @Inject(forwardRef(() => CategoriesService)) private categoriesService: CategoriesService,
         private filesService: FilesService 
         ){}
-//@Inject(forwardRef(() => CategoriesService)) 
+
     async createProduct(dto: CreateProductDto, image: Express.Multer.File, media: Express.Multer.File[]){
         const imageId = await this.filesService.uploadFile(image)
         let mediaIds = []

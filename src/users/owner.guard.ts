@@ -17,8 +17,6 @@ export class OwnerGuard implements CanActivate {
     private reflector: Reflector,
     private usersService: UsersService) {}
 
-   
-
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const { user, params } = context.switchToHttp().getRequest<ReqWithUser>();
     const userDoc = await this.usersService.get(user?._id)

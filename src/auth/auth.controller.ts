@@ -6,13 +6,15 @@ import { AuthService } from './auth.service';
 import { GoogleAuthGuard } from './google-auth.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { LocalAuthGuard } from './local-auth.guard';
+import { Public } from './public.decorator';
 
 @Controller('auth')
 export class AuthController {
     constructor(private authService: AuthService, private usersService: UsersService){}
 
-    @UseGuards(LocalAuthGuard)
+    @Public()
     @Post('/login-local')
+    @UseGuards(LocalAuthGuard)
     async login(@GetUser('id') user: ObjectId){
         return this.authService.login(user)
     }

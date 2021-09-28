@@ -36,7 +36,7 @@ export type AppAbility = Ability<[Action, Subjects]>
 export class CaslAbilityFactory {
     createForUser(user: UserDocument){
         const {can, cannot, build} = new AbilityBuilder<AppAbility>(Ability as AbilityClass<AppAbility>)
-        if(user.role in [Role.Admin, Role.Editor]){
+        if([Role.Admin, Role.Editor].includes(user.role)){
             can(Action.Manage, 'all')
         }
 
@@ -51,6 +51,7 @@ export class CaslAbilityFactory {
         can(Action.Delete, User, {_id: user.id})
         can(Action.Read, Product, {enable: true})
         can(Action.Read, Look)
+        
         return build({
             detectSubjectType: item => item.constructor as ExtractSubjectType<Subjects>
         })

@@ -26,7 +26,7 @@ import { OrdersModule } from './orders/orders.module';
         AWS_ACCESS_KEY_ID: Joi.string().required(),
         AWS_SECRET_ACCESS_KEY: Joi.string().required(),
         AWS_BUCKET_URL: Joi.string().required(),
-        AWS_BUCKET_NAME: Joi.string().required(),
+        AWS_BUCKET_NAME: Joi.string().required()
       })
     }),
     MongooseModule.forRoot(process.env.MONGO_URI),

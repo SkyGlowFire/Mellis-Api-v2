@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
-import bcrypt from 'bcryptjs'
+import * as bcrypt from 'bcryptjs'
 import { Model, ObjectId } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { Profile } from 'passport-google-oauth20';
@@ -18,7 +18,7 @@ export class AuthService {
         const user = await this.usersService.getByEmail(email);
         if(!user) throw new HttpException('User does not exist', HttpStatus.NOT_FOUND)
         const passwMatch = await bcrypt.compare(pas, user.password)
-        if(!passwMatch) return null
+        if(!passwMatch) throw new HttpException('Wrong password', HttpStatus.NOT_FOUND)
         return user
     }
 
@@ -44,7 +44,7 @@ export class AuthService {
         return user.id
     }
 
-    async login(userId: ObjectId){
+    async login(userId: ObjectId): Promise<{access_token: string}>{
         if(!userId) {
             throw new UnauthorizedException()
         }

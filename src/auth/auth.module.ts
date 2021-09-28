@@ -10,6 +10,7 @@ import { JwtStrategy } from './jwt.strategy';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from 'src/users/schemas/user.schema';
 import { CaslModule } from 'src/casl/casl.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   providers: [AuthService, LocalStrategy, JwtStrategy, GoogleStrategy],
@@ -17,9 +18,13 @@ import { CaslModule } from 'src/casl/casl.module';
     UsersModule, 
     PassportModule, 
     CaslModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'secret',
-      signOptions: {expiresIn: process.env.JWT_EXPIRE || '1h'}
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get('JWT_SECRET'),
+        signOptions: {expiresIn: configService.get('JWT_EXPIRE')}
+      }),
+      inject: [ConfigService]
     }),
      MongooseModule.forFeature([{
       name: User.name,

@@ -7,6 +7,8 @@ import { Address, AddressSchema} from './schemas/address.schema';
 
 import * as bcrypt from 'bcryptjs'
 import { CaslModule } from 'src/casl/casl.module';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [MongooseModule.forFeatureAsync([
@@ -40,7 +42,16 @@ import { CaslModule } from 'src/casl/casl.module';
       useFactory: () => AddressSchema
     }
   ]),
-  CaslModule],
+  CaslModule,
+  JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get('JWT_SECRET'),
+        signOptions: {expiresIn: configService.get('JWT_EXPIRE')}
+      }),
+      inject: [ConfigService]
+    })
+  ],
   providers: [UsersService],
   controllers: [UsersController],
   exports: [UsersService]

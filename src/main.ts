@@ -50,6 +50,7 @@ app.use(session(sessionOptions))
     secretAccessKey: configService.get('AWS_SECRET_ACCESS_KEY'),
     // region: configService.get('AWS_REGION')
   })
-  await app.listen(3000);
+  await app.listen(process.env.PORT);
+  console.log('Server listens on port ' + process.env.PORT)
 }
 bootstrap();

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import {Model, ObjectId} from 'mongoose'
 import { CreateAddressDto } from './dto/create_address.dto';
@@ -12,7 +13,8 @@ import {Role, User, UserDocument} from './schemas/user.schema'
 export class UsersService {
     constructor(
         @InjectModel(User.name) private userModel: Model<UserDocument>,
-        @InjectModel(Address.name) private addressModel: Model<AddressDocument>){}
+        @InjectModel(Address.name) private addressModel: Model<AddressDocument>,
+        private jwtService: JwtService){}
 
     async getAll(): Promise<UserDocument[]>{
         const users = await this.userModel.find()
@@ -34,9 +36,12 @@ export class UsersService {
         return user
     }
 
-    async create(dto: CreateUserDto): Promise<UserDocument>{
+    async create(dto: CreateUserDto): Promise<{access_token: string}>{
         const user = await this.userModel.create(dto)
-        return user
+        const payload = {sub: user.id}
+        return {
+            access_token: this.jwtService.sign(payload)
+        }
     }
 
     async delete(id: ObjectId): Promise<UserDocument>{

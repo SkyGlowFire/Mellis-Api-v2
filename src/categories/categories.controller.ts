@@ -10,8 +10,8 @@ import { Category } from './schemas/category.schema';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Public } from 'src/auth/public.decorator';
 
+// @UseGuards(JwtAuthGuard)
 @UseGuards(PoliciesGuard)
-@UseGuards(JwtAuthGuard)
 @Controller('categories')
 export class CategoriesController {
     constructor(private readonly categoriesService: CategoriesService){}
@@ -28,7 +28,6 @@ export class CategoriesController {
         return this.categoriesService.get(id)
     }
 
-    
     @CheckPolicies((ability: AppAbility) => ability.can(Action.Create, Category))
     @Post()
     addCategory(@Body() dto: CreateCategoryDto){
