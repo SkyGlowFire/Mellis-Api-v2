@@ -13,22 +13,26 @@ export class LooksService {
         private filesService: FilesService){}
 
     async getLooks(): Promise<LookDocument[]>{
-        const looks = await this.lookModel.find({enable: true})
+        const looks = await this.lookModel.find({enable: true}).populate([
+            'image', {path: 'items', populate: 'image'}
+        ])
         return looks
     }
 
      async getAllLooks(): Promise<LookDocument[]>{
-        const looks = await this.lookModel.find()
+        const looks = await this.lookModel.find().populate('items').populate([
+            'image', {path: 'items', populate: 'image'}
+        ])
         return looks
     }
 
      async getLook(id: ObjectId): Promise<LookDocument>{
-        const look = await this.lookModel.findOne({enable: true, _id:id})
+        const look = await this.lookModel.findOne({enable: true, _id:id}).populate('image')
         return look
     }
 
      async getAnyLook(id: ObjectId): Promise<LookDocument>{
-        const look = await this.lookModel.findById(id)
+        const look = await this.lookModel.findById(id).populate('image')
         return look
     }
 
@@ -46,10 +50,10 @@ export class LooksService {
             const newImage = await this.filesService.uploadFile(image)
             updateOptions['$set'].image = newImage
         }
-        const removedItems = look.items.filter(x => !dto.items.includes(x))
-        const addedItems = dto.items.filter(x => !look.items.includes(x))
-        updateOptions['$push'] = {items: {'$each': addedItems}}
-        updateOptions['$pull'] = {items: {'$in': removedItems}}
+        // const removedItems = look.items.filter(x => !dto.items.includes(x))
+        // const addedItems = dto.items.filter(x => !look.items.includes(x))
+        // updateOptions['$push'] = {items: {'$each': addedItems}}
+        // updateOptions['$pull'] = {items: {'$in': removedItems}}
         return await this.lookModel.findByIdAndUpdate(id, updateOptions, {new: true})
     }
 

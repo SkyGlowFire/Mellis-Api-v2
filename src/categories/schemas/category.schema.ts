@@ -30,6 +30,9 @@ export class Category{
     @Prop()
     path: string[]
 
+    @Prop({default: 0})
+    totalProducts: number
+
     @Prop({ type: [{type: mongooseSchema.Types.ObjectId, ref: 'Product'}]})
     products: Product[]
 }

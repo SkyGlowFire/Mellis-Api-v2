@@ -3,6 +3,7 @@ import { ObjectId } from 'mongoose';
 import { GetUser } from 'src/users/user.decorator';
 import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
+import { AuthenticatedGuard } from './authenticated.guard';
 import { GoogleAuthGuard } from './google-auth.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { LocalAuthGuard } from './local-auth.guard';
@@ -15,11 +16,11 @@ export class AuthController {
     @Public()
     @Post('/login-local')
     @UseGuards(LocalAuthGuard)
-    async login(@GetUser('id') user: ObjectId){
+    login(@GetUser('id') user: ObjectId){
         return this.authService.login(user)
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(AuthenticatedGuard)
     @Get('/me')
     getMe(@GetUser('id') userId: ObjectId){
         return this.usersService.get(userId)

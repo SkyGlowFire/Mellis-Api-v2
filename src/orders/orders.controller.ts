@@ -3,13 +3,14 @@ import { ObjectId } from 'mongoose';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { PoliciesGuard } from 'src/casl/policies.guard';
 import { Roles } from 'src/casl/roles.decorator';
-import { Role } from 'src/users/schemas/user.schema';
+import { Role, UserDocument } from 'src/users/schemas/user.schema';
 import {OrderStatus} from './schemas/order.schema'
 import { GetUser } from 'src/users/user.decorator';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { AuthenticatedGuard } from 'src/auth/authenticated.guard';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthenticatedGuard)
 @UseGuards(PoliciesGuard)
 @Controller('orders')
 export class OrdersController {
@@ -39,7 +40,7 @@ export class OrdersController {
     }
 
     @Post()
-    createOrder(@Body() dto: CreateOrderDto, @GetUser('id') user: ObjectId){
+    createOrder(@Body() dto: CreateOrderDto, @GetUser() user: UserDocument){
         return this.ordersService.createOrder(dto, user)
     }
 }

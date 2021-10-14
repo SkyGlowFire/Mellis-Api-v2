@@ -16,8 +16,8 @@ export class File{
     @Prop({required: [true, 'Please add file url']})
     url: string
 
-    @Prop({required: [true, 'Please add file type'], enum: ['image', 'video']})
-    type: FileType
+    @Prop({required: [true, 'Please add file type'], enum: ['image', 'video'], type: String})
+    fileType: FileType
 
 }
 

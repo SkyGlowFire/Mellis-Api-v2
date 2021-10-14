@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Patch, Query, Body, Post, UseInterceptors, UploadedFiles, Delete, Put, UseGuards } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { ObjectId } from 'mongoose';
+import * as mongoose from 'mongoose';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Public } from 'src/auth/public.decorator';
 import { Action, AppAbility } from 'src/casl/casl-ability.factory';
@@ -12,8 +12,9 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { IFilters, IPath, ProductsService } from './products.service';
 import { Product } from '../casl/casl-ability.factory';
+import { AuthenticatedGuard } from 'src/auth/authenticated.guard';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthenticatedGuard)
 @Controller('products')
 export class ProductsController {
 
@@ -27,33 +28,39 @@ export class ProductsController {
 
     @Roles(Role.Admin, Role.Editor)
     @Get('/all')
-    getAllProducts(){
-        return this.productsService.getAll()
+    getAllProducts(@Query('filter') filter: string){
+        return this.productsService.getAll(filter)
     }
 
     @Public()
     @Get('/:id')
-    getProduct(@Param('id') id: ObjectId){
+    getProduct(@Param('id') id: mongoose.Types.ObjectId){
         return this.productsService.get(id)
     }
 
     @Roles(Role.Admin, Role.Editor)
     @Get('/all/:id')
-    getAny(@Param('id') id: ObjectId){
+    getAny(@Param('id') id: mongoose.Types.ObjectId){
         return this.productsService.getAny(id)
+    }
+
+    @Public()
+    @Get('/:id/related-products')
+    getRelatedProducts(@Param('id') id: mongoose.Types.ObjectId){
+        return this.productsService.getRelatedProducts(id)
     }
 
     @UseGuards(PoliciesGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, Product))
     @Patch('/enable')
-    enableProducs(@Body('products') products: ObjectId[]){
+    enableProducs(@Body('products') products: mongoose.Types.ObjectId[]){
         return this.productsService.enableProducts(products)
     }
 
     @UseGuards(PoliciesGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, Product))
     @Patch('/disable')
-    dsableProducs(@Body('products') products: ObjectId[]){
+    dsableProducs(@Body('products') products: mongoose.Types.ObjectId[]){
         return this.productsService.disableProducts(products)
     }
 
@@ -76,36 +83,36 @@ export class ProductsController {
         {name: 'media', maxCount: 8}
     ]))
     @Put('/:id')
-    updateProduct(@Param('id') id: ObjectId, @Body() dto: UpdateProductDto, @UploadedFiles() files: {image: Express.Multer.File[], media: Express.Multer.File[]}){
+    updateProduct(@Param('id') id: mongoose.Types.ObjectId, @Body() dto: UpdateProductDto, @UploadedFiles() files: {image: Express.Multer.File[], media: Express.Multer.File[]}){
         const {image, media} = files
-        return this.productsService.update(id, dto, image[0], media)
+        return this.productsService.update(id, dto, image?.[0], media)
     }
 
     @UseGuards(PoliciesGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Action.Delete, Product))
     @Delete('/:id')
-    deleteProduct(@Param('id') id: ObjectId){
+    deleteProduct(@Param('id') id: mongoose.Types.ObjectId){
         return this.productsService.delete(id)
     }
 
     @UseGuards(PoliciesGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Action.Delete, Product))
     @Patch('/delete-many')
-    deleteProducts(@Body('products') ids: ObjectId[]){
+    deleteProducts(@Body('products') ids: mongoose.Types.ObjectId[]){
         return this.productsService.deleteMany(ids)
     }
 
     @UseGuards(PoliciesGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, Product))
     @Patch('/:id/add-related-products')
-    addRelatedProducts(@Param('id') id: ObjectId, @Body('products') products: ObjectId[]){
+    addRelatedProducts(@Param('id') id: mongoose.Types.ObjectId, @Body('products') products: mongoose.Types.ObjectId[]){
         return this.productsService.addRelatedProducts(id, products)
     }
 
     @UseGuards(PoliciesGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, Product))
     @Patch('/:id/remove-related-products')
-    removeRelatedProducts(@Param('id') id: ObjectId, @Body('products') products: ObjectId[]){
+    removeRelatedProducts(@Param('id') id: mongoose.Types.ObjectId, @Body('products') products: mongoose.Types.ObjectId[]){
         return this.productsService.removeRelatedProducts(id, products)
     }
 }

@@ -38,5 +38,5 @@ class OrderItem{
 
     @IsNotEmpty()
     @IsMongoId()
-    image: ObjectId
+    product: ObjectId
 }

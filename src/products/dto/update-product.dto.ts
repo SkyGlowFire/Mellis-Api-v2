@@ -1,48 +1,66 @@
-import { ObjectId } from "mongoose"
-import { Sizes } from "../schemas/product.schema"
-import { ArrayNotEmpty, IsBoolean, IsMongoId, IsNotEmpty, IsNumber, IsPositive, IsString, Length, Matches, Min } from "class-validator";
+import * as mongoose from "mongoose"
+import { Size } from "../schemas/product.schema"
+import { ArrayNotEmpty, IsOptional, IsBoolean, IsDefined, IsMongoId, IsNotEmpty, IsNumber, IsArray, IsPositive, IsString, Length, Matches, Min, ValidateIf } from "class-validator";
 
 export class UpdateProductDto{
+    @IsNotEmpty()
     @IsString()
     @Length(4, 80)
     title?: string
 
-    @IsBoolean()
+    @IsDefined()
+    // @IsBoolean()
     enable?: boolean
 
+    @IsOptional()
     @IsString()
-    @Length(12, 600)
+    @Matches(/^([\w ]{15, 700})?$/i)
     description?: string
 
-    @IsMongoId()
-    category?: ObjectId
+    @IsNotEmpty()
+    @IsString()
+    brand: string
 
+    @IsNotEmpty()
+    @IsMongoId()
+    category?: mongoose.Types.ObjectId
+
+    @IsNotEmpty()
     @IsString()
     color?: string
 
-    @IsPositive()
+    // @IsPositive()
+    @IsDefined()
     price?: number
 
-    @IsPositive()
+    @IsDefined()
+    // @IsPositive()
     weight?: number
 
+    @IsOptional()
     @IsString()
     sku?: string
 
-    @Matches(/xs|sm|md|lg|xl|xxl/i, {each: true})
-    sizes?: Sizes[]
+    @IsOptional()
+    @Matches(/xs|s|m|l|xl|xxl/i, {each: true})
+    sizes?: Size[]
 
-    @IsBoolean()
+    // @IsBoolean()
+    @IsDefined()
     bulkDiscountEnable?: boolean
 
+    @ValidateIf(o => o.bulkDiscountEnable === true)
     @IsPositive()
     @Min(2)
     bulkDiscountQty?: number
 
+    @ValidateIf(o => o.bulkDiscountEnable === true)
     @IsPositive()
     @Min(1)
     bulkDiscountPrice?: number
 
-    @IsMongoId({each: true})
-    mediaToRemove: ObjectId[]
+    @IsOptional()
+    // @IsArray()
+    // @IsString({each: true})
+    mediaToRemove: mongoose.Types.ObjectId[]
 }

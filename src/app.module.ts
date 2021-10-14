@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
 import {ConfigModule} from '@nestjs/config'
 import * as Joi from 'joi'
@@ -10,6 +10,11 @@ import { CategoriesModule } from './categories/categories.module';
 import { FilesModule } from './files/files.module';
 import { LooksModule } from './looks/looks.module';
 import { OrdersModule } from './orders/orders.module';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import {HttpExceptionFilter} from './http-exception.filter'
+import { AppLoggerMiddleware } from './middleware/app-logger.middleware';
+import { AuthenticatedGuard } from './auth/authenticated.guard';
+import {PassportModule} from '@nestjs/passport'
 
 @Module({
   imports: [
@@ -40,6 +45,13 @@ import { OrdersModule } from './orders/orders.module';
     OrdersModule
   ],
   controllers: [],
-  providers: [],
+  providers: [{
+    provide: APP_FILTER,
+    useClass: HttpExceptionFilter
+  }],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void{
+    consumer.apply(AppLoggerMiddleware).forRoutes('*')
+  }
+}

@@ -12,8 +12,9 @@ import { CreateLookDto } from './dto/create-look.dto';
 import { UpdateLookDto } from './dto/update-look.dto';
 import { LooksService } from './looks.service';
 import { Look } from '../casl/casl-ability.factory';
+import { AuthenticatedGuard } from 'src/auth/authenticated.guard';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthenticatedGuard)
 @Controller('looks')
 export class LooksController {
     constructor(private readonly looksService: LooksService){}
@@ -62,7 +63,7 @@ export class LooksController {
         {name: 'image', maxCount: 1}
     ]))
     @Post()
-    createProduct(@Body() dto: CreateLookDto, @UploadedFiles() files: {image: Express.Multer.File[]}){
+    createLook(@Body() dto: CreateLookDto, @UploadedFiles() files: {image: Express.Multer.File[]}){
         const {image} = files
         return this.looksService.createLook(dto, image[0])
     }
@@ -73,9 +74,9 @@ export class LooksController {
         {name: 'image', maxCount: 1}
     ]))
     @Put('/:id')
-    updateProduct(@Param('id') id: ObjectId, @Body() dto: UpdateLookDto, @UploadedFiles() files: {image: Express.Multer.File[]}){
+    updateLook(@Param('id') id: ObjectId, @Body() dto: UpdateLookDto, @UploadedFiles() files: {image: Express.Multer.File[]}){
         const {image} = files
-        return this.looksService.updateLook(id, dto, image[0])
+        return this.looksService.updateLook(id, dto, image?.[0])
     }
 
     @UseGuards(PoliciesGuard)
@@ -88,7 +89,7 @@ export class LooksController {
     @UseGuards(PoliciesGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Action.Delete, Look))
     @Patch('/delete-many')
-    deleteProducts(@Body('looks') ids: ObjectId[]){
+    deleteLooks(@Body('looks') ids: ObjectId[]){
         return this.looksService.deleteMany(ids)
     }
 

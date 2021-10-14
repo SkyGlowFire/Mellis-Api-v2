@@ -13,6 +13,9 @@ export class Order{
     @Prop()
     address: Address
 
+    @Prop({ requied: [true, 'Please add email']})
+    email: string
+
     @Prop({type: mongooseSchema.Types.ObjectId, ref: 'User', requied: [true, 'Please add user id']})
     user: ObjectId
 

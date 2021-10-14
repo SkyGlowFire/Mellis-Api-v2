@@ -1,5 +1,5 @@
 import {Schema, Prop, SchemaFactory} from '@nestjs/mongoose'
-import {Document, ObjectId, Schema as mongooseSchema} from 'mongoose'
+import {Document, ObjectId, Schema as mongooseSchema, Types} from 'mongoose'
 
 export type OrderItemDocument = Document & OrderItem
 
@@ -20,8 +20,8 @@ export class OrderItem{
     @Prop({required: [true, 'Please add qty value']})
     qty: number
 
-    @Prop({required: [true, 'Please add image'], type: mongooseSchema.Types.ObjectId, ref: 'File'})
-    image: ObjectId
+    @Prop({required: [true, 'Please add product id'], type: mongooseSchema.Types.ObjectId, ref: 'Product'})
+    product: Types.ObjectId
 }
 
 export const OrderItemSchema = SchemaFactory.createForClass(OrderItem)

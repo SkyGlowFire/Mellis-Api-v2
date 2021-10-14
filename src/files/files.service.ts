@@ -5,6 +5,7 @@ import * as uuid from 'uuid'
 import {S3} from 'aws-sdk'
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId, Schema } from 'mongoose';
+import * as mongoose from 'mongoose'
 
 @Injectable()
 export class FilesService {
@@ -12,6 +13,7 @@ export class FilesService {
     constructor(@InjectModel(File.name) private fileModel: Model<FileDocument>){}
 
     async uploadFile(file: Express.Multer.File): Promise<ObjectId>{
+        console.log(file);
         
         try {
             const fileExtension = file.originalname.split('.').pop()
@@ -22,10 +24,11 @@ export class FilesService {
                 Body: file.buffer,
                 Key: fileName
             }).promise()
+            console.log(file.mimetype)
             const newFile = await this.fileModel.create({
                 name: uploadResult.Key,
                 url: uploadResult.Location,
-                type: file.mimetype.split('/').shift()
+                fileType: file.mimetype.split('/').shift()
             })
             return newFile.id
         } catch (error) {
@@ -33,7 +36,7 @@ export class FilesService {
         }
     }
 
-      async removeFile(id: Schema.Types.ObjectId): Promise<ObjectId>{
+      async removeFile(id: mongoose.Types.ObjectId): Promise<ObjectId>{
         
         try {
             const file = await this.fileModel.findById(id)

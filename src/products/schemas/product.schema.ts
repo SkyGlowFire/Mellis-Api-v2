@@ -1,15 +1,21 @@
 import {Schema, Prop, SchemaFactory} from '@nestjs/mongoose'
-import {Document, ObjectId, Schema as mongooseSchema} from 'mongoose'
+import {Document, Schema as mongooseSchema} from 'mongoose'
+import * as mongoose from 'mongoose'
 import * as crypto from 'crypto'
 
 export type ProductDocument = Document & Product
 
-export enum Sizes{
-    'xs', 's', 'm', 'l', 'xl', 'xxl'
-}
+export type Size = 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl'
+
 
 @Schema()
 export class Product{
+
+    @Prop()
+    title: string
+
+    @Prop()
+    brand: string
 
     @Prop({default: false})
     enable: boolean
@@ -18,15 +24,22 @@ export class Product{
     description: string
 
     @Prop({type: mongooseSchema.Types.ObjectId, ref: 'Category'})
-    category: ObjectId
+    category: mongoose.Types.ObjectId
+
+    @Prop({})
+    path: string[]
+
+    @Prop({})
+    pathString: string
 
     @Prop({required: [true, 'Please add product image'], type: mongooseSchema.Types.ObjectId, ref: 'File'})
-    image: ObjectId
+    image: mongoose.Types.ObjectId
 
     @Prop({type: [{type: mongooseSchema.Types.ObjectId, ref: 'File'}]})
-    media: ObjectId[]
-    @Prop({type: [{enum: ['xs', 's', 'm', 'l', 'xl', 'xxl']}], default: ['xs', 's', 'm', 'l', 'xl', 'xxl'] })
-    sizes: Sizes[]
+    media: mongoose.Types.ObjectId[]
+
+    @Prop({type: [{enum: ['xs', 's', 'm', 'l', 'xl', 'xxl'], type: String}], default: ['xs', 's', 'm', 'l', 'xl', 'xxl'] })
+    sizes: Size[]
 
     @Prop({required: [true, 'Please add color']})
     color: string
@@ -38,7 +51,7 @@ export class Product{
     sku: string
 
     @Prop({type: [{type: mongooseSchema.Types.ObjectId, ref: 'Product'}]})
-    relatedProducts: Product[] | ObjectId[]
+    relatedProducts: Product[] | mongoose.Types.ObjectId[]
 
     @Prop({required: [true, 'Please add product price']})
     price: number

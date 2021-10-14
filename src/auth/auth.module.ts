@@ -11,12 +11,13 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from 'src/users/schemas/user.schema';
 import { CaslModule } from 'src/casl/casl.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { SessionSerializer } from './session.serializer';
 
 @Module({
-  providers: [AuthService, LocalStrategy, JwtStrategy, GoogleStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy, GoogleStrategy, SessionSerializer],
   imports: [
     UsersModule, 
-    PassportModule, 
+    PassportModule.register({session: true}), 
     CaslModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

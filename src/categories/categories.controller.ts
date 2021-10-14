@@ -9,9 +9,10 @@ import { PoliciesGuard } from 'src/casl/policies.guard';
 import { Category } from './schemas/category.schema';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Public } from 'src/auth/public.decorator';
+import { AuthenticatedGuard } from 'src/auth/authenticated.guard';
+import * as mongoose from 'mongoose'
 
-// @UseGuards(JwtAuthGuard)
-@UseGuards(PoliciesGuard)
+@UseGuards(AuthenticatedGuard)
 @Controller('categories')
 export class CategoriesController {
     constructor(private readonly categoriesService: CategoriesService){}
@@ -24,37 +25,48 @@ export class CategoriesController {
 
     @Public()
     @Get('/:id')
-    getCategory(@Param('id') id: ObjectId){
+    getCategory(@Param('id') id: mongoose.Types.ObjectId){
         return this.categoriesService.get(id)
     }
 
+    @Public()
+    @Get('/:id/products')
+    getCategoryProducts(@Param('id') id: mongoose.Types.ObjectId){
+        return this.categoriesService.getCategoryProducts(id)
+    }
+
     @CheckPolicies((ability: AppAbility) => ability.can(Action.Create, Category))
+    @UseGuards(PoliciesGuard)
     @Post()
     addCategory(@Body() dto: CreateCategoryDto){
         return this.categoriesService.create(dto)
     }
 
     @CheckPolicies((ability: AppAbility) => ability.can(Action.Delete, Category))
+    @UseGuards(PoliciesGuard)
     @Delete('/:id')
-    deleteCategory(@Param('id') id: ObjectId){
+    deleteCategory(@Param('id') id: mongoose.Types.ObjectId){
         return this.categoriesService.delete(id)
     }
 
     @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, Category))
+    @UseGuards(PoliciesGuard)
     @Patch('/:id')
-    updateCategory(@Param('id') id: ObjectId, dto: UpdateCategoryDto){
+    updateCategory(@Param('id') id: mongoose.Types.ObjectId, @Body() dto: UpdateCategoryDto){
         return this.categoriesService.update(id, dto)
     }
 
     @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, Category))
+    @UseGuards(PoliciesGuard)
     @Patch('/:id/linkProducts')
-    linkProducts(@Param('id') id: ObjectId, @Body('products') products: ObjectId[]){
+    linkProducts(@Param('id') id: mongoose.Types.ObjectId, @Body('products') products: mongoose.Types.ObjectId[]){
         return this.categoriesService.linkProducts(id, products)
     }
 
     @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, Category))
+    @UseGuards(PoliciesGuard)
     @Patch('/:id/unlinkProducts')
-    unlinkProducts(@Param('id') id: ObjectId, @Body('products') products: ObjectId[]){
+    unlinkProducts(@Param('id') id: mongoose.Types.ObjectId, @Body('products') products: mongoose.Types.ObjectId[]){
         return this.categoriesService.unlinkProducts(id, products)
     }
 }

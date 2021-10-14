@@ -1,18 +1,17 @@
 import { ObjectId } from "mongoose"
 import { Orientation } from "../schemas/look.schema"
-import { IsBoolean, IsNotEmpty, Matches, IsMongoId, ArrayNotEmpty } from 'class-validator'
+import { IsBoolean, IsNotEmpty, Matches, IsMongoId, ArrayNotEmpty, IsString, IsDefined } from 'class-validator'
+import * as mongoose from 'mongoose'
 
 export class CreateLookDto{
-    @IsNotEmpty()
-    @IsBoolean()
+    @IsDefined()
     enable: boolean
 
-    @IsNotEmpty()
-    @Matches(/(vertical | horizontal)/i)
+    @IsDefined()
+    @Matches(/vertical|horizontal/i)
     orientation: Orientation
 
-    @IsNotEmpty()
     @ArrayNotEmpty()
-    @IsMongoId({each: true})
-    items: ObjectId[]
+    @IsString({each: true})
+    items: mongoose.Types.ObjectId[]
 }

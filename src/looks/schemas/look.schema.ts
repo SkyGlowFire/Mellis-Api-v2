@@ -1,6 +1,6 @@
 import {Schema, Prop, SchemaFactory} from '@nestjs/mongoose'
 import {Document, ObjectId, Schema as mongooseSchema} from 'mongoose'
-
+import * as mongoose from 'mongoose'
 export type LookDocument = Document & Look
 
 export type Orientation = 'vertical' | 'horizontal'
@@ -12,9 +12,9 @@ export class Look{
     enable: boolean
 
     @Prop({required: [true, 'Please add product image'], type: mongooseSchema.Types.ObjectId, ref: 'File'})
-    image: ObjectId
+    image: mongoose.Types.ObjectId
     @Prop({type: [{type: mongooseSchema.Types.ObjectId, ref: 'Product'}]})
-    items: ObjectId[]
+    items: mongoose.Types.ObjectId[]
 
     @Prop({required: [true, 'Please add color'], enum: ['horizontal', 'vertical'], default: 'vertical'})
     orientation: Orientation
