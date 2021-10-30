@@ -27,7 +27,8 @@ export class LooksService {
     }
 
      async getLook(id: ObjectId): Promise<LookDocument>{
-        const look = await this.lookModel.findOne({enable: true, _id:id}).populate('image')
+        const look = await this.lookModel.findOne({enable: true, _id:id})
+        .populate(['image', {path: 'items', populate: 'image'}])
         return look
     }
 
@@ -50,10 +51,6 @@ export class LooksService {
             const newImage = await this.filesService.uploadFile(image)
             updateOptions['$set'].image = newImage
         }
-        // const removedItems = look.items.filter(x => !dto.items.includes(x))
-        // const addedItems = dto.items.filter(x => !look.items.includes(x))
-        // updateOptions['$push'] = {items: {'$each': addedItems}}
-        // updateOptions['$pull'] = {items: {'$in': removedItems}}
         return await this.lookModel.findByIdAndUpdate(id, updateOptions, {new: true})
     }
 

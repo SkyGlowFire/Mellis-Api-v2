@@ -26,6 +26,12 @@ export class ProductsController {
         return this.productsService.getByCategory(path, filters)
     }
 
+    @Public()
+    @Get('/search')
+    searchProducts(@Query() filters: IFilters){
+        return this.productsService.searchProducts(filters)
+    }
+
     @Roles(Role.Admin, Role.Editor)
     @Get('/all')
     getAllProducts(@Query('filter') filter: string){
@@ -33,7 +39,7 @@ export class ProductsController {
     }
 
     @Public()
-    @Get('/:id')
+    @Get('/details/:id')
     getProduct(@Param('id') id: mongoose.Types.ObjectId){
         return this.productsService.get(id)
     }

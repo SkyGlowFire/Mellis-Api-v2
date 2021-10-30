@@ -8,15 +8,16 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product, ProductDocument, Size } from './schemas/product.schema';
 import * as mongoose from 'mongoose'
-import { capitalize } from 'src/utils/textFormatters';
+import { capitalize, fromUrlString, toUrlString } from 'src/utils/textFormatters';
 import { OrderItem, OrderItemDocument } from 'src/orders/schemas/order-item.schema';
 
 export interface IFilters{
-    size?: string
-    color?: string
+    sizes?: string
+    colors?: string
     price?: string
     sort?: string
     sale?: string
+    search?: string
 }
 
 export interface IPath{
@@ -28,6 +29,14 @@ export interface IPath{
 export interface IProductsResponse{
     products: ProductDocument[]
     count: number
+    minPrice?: number
+    maxPrice?: number
+    category: CategoryDocument
+}
+
+export interface ISearchResponse {
+    products: ProductDocument[]
+    total: number
     minPrice?: number
     maxPrice?: number
 }
@@ -60,7 +69,11 @@ export class ProductsService {
         if(!mongoose.Types.ObjectId.isValid(id)){
             throw new NotFoundException(`Product with id ${id} doesn't exist`)
         }
-        return await this.productModel.findOne({_id: id, enable: true}).populate(['category', 'image', 'media'])
+        const product = await this.productModel.findOne({_id: id, enable: true}).populate(['category', 'image', 'media'])
+        if(!product){
+            throw new NotFoundException(`Product with id ${id} doesn't exist`)
+        }
+        return product
     }
 
     async getAny(id: mongoose.Types.ObjectId): Promise<ProductDocument>{
@@ -87,17 +100,18 @@ export class ProductsService {
     }
 
     async getByCategory(path: IPath, filters: IFilters): Promise<IProductsResponse>{
+        const category = await this.categoriesService.getCategoryByPath(path)
         let queryOptions: FilterQuery<ProductDocument> = {enable: true}
-        queryOptions['path.0'] = path.categoryName
+        queryOptions['path.0'] = fromUrlString(path.categoryName)
         if(path.groupName){
-            queryOptions['path.1'] = path.groupName
+            queryOptions['path.1'] = fromUrlString(path.groupName)
         }
         if(path.subGroupName){
-            queryOptions['path.2'] = path.subGroupName
+            queryOptions['path.2'] = fromUrlString(path.subGroupName)
         }
+        const {minPrice, maxPrice} = await this.getPriceRange(queryOptions)
         const filtersQuery = this.formFilterQuery(filters)
         queryOptions = {...queryOptions, ...filtersQuery}
-
         let query = this.productModel.find(queryOptions)
          .populate([
             {path: 'looks',
@@ -113,20 +127,56 @@ export class ProductsService {
             'relatedProducts'
         ])
 
-        if(filters.sort && /^\[(price_low-high|price_high-low|new|popular)\]$/.test(filters.sort)){
+        if(filters.sort && /^\[(price-up|price-down|new|popular)\]$/.test(filters.sort)){
             const sortOptions = {
-                'price_low-high': {price: 1},
-                'price_high-low': {price: -1},
+                'price-up': {price: 1},
+                'price-down': {price: -1},
                 'new': 'createdAt'
             }
             const sortType = filters.sort.slice(1, -1)
             query = query.sort(sortOptions[sortType])
-        }
-
-        const {minPrice, maxPrice} = await this.getPriceRange(queryOptions)
+        }      
         const products = await query
         
-        return {count: products.length, products, minPrice, maxPrice}
+        return {count: products.length, products, minPrice, maxPrice, category}
+    }
+
+      async searchProducts(filters: IFilters): Promise<ISearchResponse>{
+        let queryOptions: FilterQuery<ProductDocument> = {enable: true}
+        if(filters.search){
+            queryOptions.title = {'$regex': new RegExp(filters.search, 'i')}
+        }
+        const {minPrice, maxPrice} = await this.getPriceRange(queryOptions)
+        const total = await this.productModel.count(queryOptions)
+        const filtersQuery = this.formFilterQuery(filters)
+        queryOptions = {...queryOptions, ...filtersQuery}
+        let query = this.productModel.find(queryOptions)
+         .populate([
+            {path: 'looks',
+            select: 'items image orientation',
+            populate: 'image'
+            },
+            {path: 'category', 
+            select: 'title path level pathString', 
+            populate: {path: 'path', select: 'title'}
+            },
+            'image',
+            'media',
+            'relatedProducts'
+        ])
+
+        if(filters.sort && /^\[(price-up|price-down|new|popular)\]$/.test(filters.sort)){
+            const sortOptions = {
+                'price-up': {price: 1},
+                'price-down': {price: -1},
+                'new': 'createdAt'
+            }
+            const sortType = filters.sort.slice(1, -1)
+            query = query.sort(sortOptions[sortType])
+        }      
+        const products = await query
+        
+        return {total, products, minPrice, maxPrice}
     }
 
     async update(id: mongoose.Types.ObjectId, dto: UpdateProductDto, image: Express.Multer.File | undefined, media: Express.Multer.File[]): Promise<ProductDocument>{
@@ -144,13 +194,11 @@ export class ProductsService {
             updateOptions['$set'].pathString = category.path.map(x => capitalize(x)).join('/')
         }
         if(image){
-            console.log('image', image)
             await this.filesService.removeFile(product.image)
             const newImage = await this.filesService.uploadFile(image)
             updateOptions['$set'].image = newImage
         }
         if(media){
-            console.log('media', media)
             const newMedia = await Promise.all(media.map(file => this.filesService.uploadFile(file)))
             updateOptions['$push'] = {media: {'$each': newMedia}}
         }
@@ -168,7 +216,7 @@ export class ProductsService {
         }
         const product = await this.productModel.findById(id)
         const orderItems = await this.orderItemModel.find({product: id})
-        if(orderItems){
+        if(orderItems.length > 0){
             throw new BadRequestException('You can\'t delete product before all order items with this product are removed')
         }
         await this.filesService.removeFile(product.image)
@@ -228,7 +276,7 @@ export class ProductsService {
     }
 
     private formFilterQuery(filters: IFilters): FilterQuery<ProductDocument>{
-        const {size, color, price, sale} = filters
+        const {sizes, colors, price, sale} = filters
         let filtersQuery: FilterQuery<ProductDocument> = {}
         //all filters have format of '[a b c ...]', except '[a b]' for price
         if(price  && /^\[\d+(\.\d+)?(\s\d+(\.\d+)?)?\]$/.test(price)){
@@ -242,15 +290,15 @@ export class ProductsService {
             }
         }
 
-        if(size && /\[(xs|s|m|l|xl|xxl)(\s(xs|s|m|l|xl|xxl))*\]/i.test(size)){
-            let sizes = size.slice(1, -1).split(' ') 
-            sizes = sizes.map(x => x.toLowerCase())
-            filtersQuery['sizes'] = {'$in': sizes as Size[]}
+        if(sizes && /\[(xs|s|m|l|xl|xxl)(\s(xs|s|m|l|xl|xxl))*\]/i.test(sizes)){
+            let sizeValues = sizes.slice(1, -1).split(' ') 
+            sizeValues = sizeValues.map(x => x.toLowerCase())
+            filtersQuery['sizes'] = {'$in': sizeValues as Size[]}
         }
 
-        if(color && /\[[A-Za-z]+(\s[A-Za-z]+)*\]/.test(color)){
-            const colors = color.slice(1, -1).split(' ')
-            filtersQuery.color = {'$in': colors}
+        if(colors && /\[[A-Za-z]+(\s[A-Za-z]+)*\]/.test(colors)){
+            const colorValues = colors.slice(1, -1).split(' ')
+            filtersQuery.color = {'$in': colorValues}
         }
 
         if(sale !== undefined){

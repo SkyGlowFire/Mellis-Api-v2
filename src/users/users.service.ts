@@ -1,13 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
-import {Model, ObjectId} from 'mongoose'
+import {Model, UpdateQuery, Types} from 'mongoose'
 import { CreateAddressDto } from './dto/create_address.dto';
 import { CreateUserDto } from './dto/create_user.dto';
 import { UpdateAddressDto } from './dto/update_adress.dto';
 import { UpdateUserDto } from './dto/update_user.dto';
 import { Address, AddressDocument } from './schemas/address.schema';
 import {Role, User, UserDocument} from './schemas/user.schema'
+import * as bcrypt from 'bcryptjs'
 
 @Injectable()
 export class UsersService {
@@ -21,7 +22,7 @@ export class UsersService {
         return users
     }
 
-    async get(id: ObjectId): Promise<UserDocument>{
+    async get(id: Types.ObjectId): Promise<UserDocument>{
         const user = await this.userModel.findById(id).populate('addresses')
         return user
     }
@@ -37,6 +38,10 @@ export class UsersService {
     }
 
     async create(dto: CreateUserDto): Promise<{access_token: string}>{
+        const existingUser = await this.getByEmail(dto.email)
+        if(existingUser){
+            throw new ForbiddenException(`User with email ${dto.email} already exists`)
+        }
         const user = await this.userModel.create(dto)
         const payload = {sub: user.id}
         return {
@@ -44,40 +49,60 @@ export class UsersService {
         }
     }
 
-    async delete(id: ObjectId): Promise<UserDocument>{
+    async delete(id: Types.ObjectId): Promise<UserDocument>{
         const user = await this.userModel.findById(id)
         await this.addressModel.deleteMany({_id: {"$in": user.addresses}})
         await user.remove()
         return user
     }
 
-    async update(id: ObjectId, dto: UpdateUserDto): Promise<UserDocument>{
-        const user = await this.userModel.findByIdAndUpdate(id, dto)
+    async update(id: Types.ObjectId, dto: UpdateUserDto): Promise<UserDocument>{
+        const updateOptions: UpdateQuery<UserDocument> = {['$set']: {}}
+        const {oldPassword, password, ...data} = dto
+        if(password){
+            const user = await this.userModel.findById(id).select('+password')
+            const passwMatch = await bcrypt.compare(dto.oldPassword, user.password)
+            if(!passwMatch) throw new ForbiddenException('Wrong password')
+            const salt = await bcrypt.genSalt(10)
+            const newPassword = await bcrypt.hash(password, salt)
+            updateOptions['$set'].password = newPassword
+        }
+        Object.keys(data).forEach((key) => {
+            if(data[key] !== ''){
+                updateOptions['$set'][key] = data[key]
+            }
+        })
+        const user = await this.userModel.findByIdAndUpdate(id, updateOptions)
         return user
     }
 
-    async changeRole(id: ObjectId, role: Role): Promise<UserDocument>{
+    async changeRole(id: Types.ObjectId, role: Role): Promise<UserDocument>{
         const user = await this.userModel.findByIdAndUpdate(id, {role})
         return user
     }
 
-    async addAddress(userId: ObjectId, dto: CreateAddressDto): Promise<Address>{
+    async addAddress(userId: Types.ObjectId, dto: CreateAddressDto): Promise<AddressDocument>{
         const address = await this.addressModel.create({...dto, user: userId})
         await this.userModel.findByIdAndUpdate(userId, {"$push": {addresses: address.id}})
         return address
     }
 
-    async updateAddress(id: ObjectId, dto: UpdateAddressDto): Promise<Address>{
-        const address = await this.addressModel.findByIdAndUpdate(id, dto)
+    async updateAddress(id: Types.ObjectId, dto: UpdateAddressDto): Promise<AddressDocument>{
+        const address = await this.addressModel.findByIdAndUpdate(id, dto, {new: true})
         return address
     }
 
-     async getAddress(id: ObjectId): Promise<Address>{
+    async getAddress(id: Types.ObjectId): Promise<AddressDocument>{
         const address = await this.addressModel.findById(id)
         return address
     }
 
-    async deleteAddress(id: ObjectId, userId: ObjectId): Promise<Address>{
+    async getUserAddresses(user: Types.ObjectId): Promise<AddressDocument[]>{
+        const addresses = await this.addressModel.find({user})
+        return addresses
+    }
+
+    async deleteAddress(id: Types.ObjectId, userId: Types.ObjectId): Promise<Address>{
         const address = await this.addressModel.findByIdAndRemove(id)
         await this.userModel.findByIdAndUpdate(userId, {"$pull": {addresses: {id}}})
         return address

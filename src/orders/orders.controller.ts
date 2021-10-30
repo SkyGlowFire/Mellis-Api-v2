@@ -28,7 +28,7 @@ export class OrdersController {
     }
 
     @Roles(Role.Admin, Role.Editor)
-    @Get('/:id')
+    @Get('/details/:id')
     getUserOrders(@Param('id') id: ObjectId){
         return this.ordersService.getUserOrders(id)
     }

@@ -1,5 +1,5 @@
 import { ArrayNotEmpty, IsMongoId, IsNotEmpty, IsNumber, IsString, ValidateNested } from "class-validator";
-import { ObjectId } from "mongoose";
+import { Types } from "mongoose";
 
 export class CreateOrderDto{
     @ValidateNested()
@@ -12,7 +12,7 @@ export class CreateOrderDto{
 
     @IsNotEmpty()
     @IsMongoId()
-    address: ObjectId
+    address: Types.ObjectId
 }
 
 class OrderItem{
@@ -38,5 +38,5 @@ class OrderItem{
 
     @IsNotEmpty()
     @IsMongoId()
-    product: ObjectId
+    product: Types.ObjectId
 }

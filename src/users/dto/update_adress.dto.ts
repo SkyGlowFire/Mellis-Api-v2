@@ -1,23 +1,25 @@
-import { IsNotEmpty, Min, Matches, Length, IsInt} from "class-validator"
+import { IsNotEmpty, Min, Matches, Length, IsInt, MinLength} from "class-validator"
 
 export class UpdateAddressDto{
     @IsNotEmpty()
-    @Min(2)
+    @MinLength(2)
     firstName: string
 
     @IsNotEmpty()
-    @Min(2)
+    @MinLength(2)
     lastName: string
 
     @IsNotEmpty()
-    @Matches(/^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$/, 
+    @Matches(/^(((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10})?$/, 
     {message: 'Please provide valid phone number'})
     phone: number
 
     @IsNotEmpty()
+    @MinLength(2)
     city: string
 
     @IsNotEmpty()
+    @MinLength(3)
     streetName: string
 
     @IsNotEmpty()
@@ -27,7 +29,6 @@ export class UpdateAddressDto{
     apartment: number
 
     @IsNotEmpty()
-    @IsInt()
     @Length(6)
     zip: number
 }

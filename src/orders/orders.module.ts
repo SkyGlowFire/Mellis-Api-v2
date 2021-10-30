@@ -4,6 +4,7 @@ import { OrdersController } from './orders.controller';
 import { UsersModule } from 'src/users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Order, OrderSchema } from './schemas/order.schema';
+import { OrderItem, OrderItemSchema } from './schemas/order-item.schema';
 import { CaslModule } from 'src/casl/casl.module';
 import { JwtModule } from '@nestjs/jwt';
 
@@ -13,8 +14,15 @@ import { JwtModule } from '@nestjs/jwt';
   imports: [
     UsersModule, 
     CaslModule,
-    MongooseModule.forFeature([{
+    MongooseModule.forFeature([
+      {
         name: Order.name,
-        schema: OrderSchema}])]
+        schema: OrderSchema
+      },
+      {
+        name: OrderItem.name,
+        schema: OrderItemSchema
+      }
+      ])]
 })
 export class OrdersModule {}

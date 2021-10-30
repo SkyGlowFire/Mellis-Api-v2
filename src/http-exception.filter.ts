@@ -9,11 +9,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
     let message: string | string[] = exception.message
-    const errResponse = exception.getResponse() as {message: string[]}
+    const errResponse = exception.getResponse() as {message: string[] | string}
     console.log(exception)
     console.log(exception.message)
     if(status === 403){
-      message = 'You are not authorized.'
+      message = errResponse.message || 'You are not authorized.'
     }
     if(status === 400){
       message = errResponse.message

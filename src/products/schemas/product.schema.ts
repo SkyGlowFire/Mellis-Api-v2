@@ -8,7 +8,10 @@ export type ProductDocument = Document & Product
 export type Size = 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl'
 
 
-@Schema()
+@Schema({
+  toJSON: {
+    virtuals: true,
+  }})
 export class Product{
 
     @Prop()
@@ -69,4 +72,14 @@ export class Product{
     bulkDiscountPrice: number
 }
 
-export const ProductSchema = SchemaFactory.createForClass(Product)
+const ProductSchema = SchemaFactory.createForClass(Product)
+
+ProductSchema.virtual('looks', {
+    ref: 'Look',
+    localField: '_id',
+    foreignField: 'items',
+    justOne: false,
+    match: {enable: true}
+});
+
+export {ProductSchema}

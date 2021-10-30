@@ -1,5 +1,5 @@
 import {Schema, Prop, SchemaFactory} from '@nestjs/mongoose'
-import {Document, ObjectId, Schema as mongooseSchema} from 'mongoose'
+import {Document, ObjectId, Schema as mongooseSchema, Types} from 'mongoose'
 import { Address } from 'src/users/schemas/address.schema'
 import { OrderItem } from './order-item.schema'
 
@@ -19,8 +19,8 @@ export class Order{
     @Prop({type: mongooseSchema.Types.ObjectId, ref: 'User', requied: [true, 'Please add user id']})
     user: ObjectId
 
-    @Prop({requied: [true, 'Please add order items']})
-    items: OrderItem[]
+    @Prop({requied: [true, 'Please add order items'], type: [{type: mongooseSchema.Types.ObjectId, ref: 'OrderItem'}]})
+    items: Types.ObjectId[]
 
     @Prop({required: [true, 'Please add price value']})
     price: number

@@ -1,5 +1,5 @@
 import {Schema, Prop, SchemaFactory} from '@nestjs/mongoose'
-import {Document, Schema as mongooseSchema} from 'mongoose'
+import {Document, Schema as mongooseSchema, Types} from 'mongoose'
 import { User } from './user.schema'
 
 export type AddressDocument = Document & Address
@@ -31,7 +31,7 @@ export class Address{
     zip: number
 
     @Prop({type: mongooseSchema.Types.ObjectId, ref: 'User'})
-    user: User
+    user: Types.ObjectId
 }
 
 export const AddressSchema = SchemaFactory.createForClass(Address)

@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards, Patch } from '@nestjs/common';
-import { ObjectId } from 'mongoose';
+import { Types } from 'mongoose';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CheckPolicies } from 'src/casl/check-policy.decorator';
 import { PoliciesGuard } from 'src/casl/policies.guard';
@@ -16,9 +16,9 @@ import {User} from '../casl/casl-ability.factory'
 import { ActionType } from 'src/auth/action-type.decorator';
 import { OwnerGuard } from './owner.guard';
 import { Roles } from 'src/casl/roles.decorator';
+import { AuthenticatedGuard } from 'src/auth/authenticated.guard';
 
-@UseGuards(JwtAuthGuard)
-@UseGuards(PoliciesGuard)
+@UseGuards(AuthenticatedGuard)
 @Controller('users')
 export class UsersController {
 
@@ -32,8 +32,8 @@ export class UsersController {
 
     @ActionType(Action.Read)
     @UseGuards(OwnerGuard)
-    @Get('/:id')
-    getUser(@Param('id') id: ObjectId){
+    @Get('/details/:id')
+    getUser(@Param('id') id: Types.ObjectId){
         return this.usersService.get(id)
     }
 
@@ -46,42 +46,47 @@ export class UsersController {
     @ActionType(Action.Update)
     @UseGuards(OwnerGuard)
     @Patch('/:id')
-    updateUser(@Body() dto: UpdateUserDto, @Param('id') id: ObjectId){
+    updateUser(@Body() dto: UpdateUserDto, @Param('id') id: Types.ObjectId){
         return this.usersService.update(id, dto)
     }
 
     @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, User, 'role'))
+    @UseGuards(PoliciesGuard)
     @Patch('/:id/role')
-    changeUserRole(@Body() role: Role, @Param('id') id: ObjectId){
+    changeUserRole(@Body('role') role: Role, @Param('id') id: Types.ObjectId){
         return this.usersService.changeRole(id, role)
     }
 
     @ActionType(Action.Delete)
     @UseGuards(OwnerGuard)
     @Delete('/:id')
-    delete(@Param('id') id: ObjectId){
+    delete(@Param('id') id: Types.ObjectId){
         return this.usersService.delete(id)
     }
 
     @ActionType(Action.Update)
     @UseGuards(OwnerGuard)
     @Post('/address')
-    addAddress(@GetUser('id') userId: ObjectId, dto: CreateAddressDto){
+    addAddress(@GetUser('id') userId: Types.ObjectId, @Body() dto: CreateAddressDto){
         return this.usersService.addAddress(userId, dto)
+    }
+
+    @Get('/address')
+    getAddresses(@GetUser('id') userId: Types.ObjectId){
+        return this.usersService.getUserAddresses(userId)
     }
 
     @ActionType(Action.Update)
     @UseGuards(OwnerGuard)
     @Delete('/address/:id')
-    deleteAddress(@GetUser('id') userId: ObjectId, @Param('id') id: ObjectId){
+    deleteAddress(@GetUser('id') userId: Types.ObjectId, @Param('id') id: Types.ObjectId){
         return this.usersService.deleteAddress(id, userId)
     }
 
     @ActionType(Action.Update)
     @UseGuards(OwnerGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, User, 'addresses'))
     @Patch('/address/:id')
-    updateAddress(@Param('id') id: ObjectId, @Body() dto: UpdateAddressDto){
+    updateAddress(@Param('id') id: Types.ObjectId, @Body() dto: UpdateAddressDto){
         return this.usersService.updateAddress(id, dto)
     }
 }

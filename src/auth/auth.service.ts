@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcryptjs'
-import { Model, ObjectId } from 'mongoose';
+import { Model, ObjectId, Types } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { Profile } from 'passport-google-oauth20';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
@@ -44,7 +44,7 @@ export class AuthService {
         return user.id
     }
 
-    async login(userId: ObjectId): Promise<{access_token: string}>{
+    async login(userId: Types.ObjectId): Promise<{access_token: string}>{
         
         if(!userId) {
             throw new UnauthorizedException()

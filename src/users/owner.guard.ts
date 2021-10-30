@@ -7,7 +7,7 @@ import { Action, CaslAbilityFactory, User } from "../casl/casl-ability.factory";
 import { UsersService } from './users.service';
 
 interface ReqWithUser extends Request{
-    user: {_id: mongoose.ObjectId}
+    user: {_id: mongoose.Types.ObjectId}
 }
 
 @Injectable()
