@@ -7,7 +7,7 @@ export class CreateCategoryDto{
     title: string
 
     @IsOptional()
-    @Matches(/^([\w ]{15, 700})?$/i)
+    @Matches(/^([\w .\/-]{15,700})?$/i)
     text: string | null
 
     @IsOptional()

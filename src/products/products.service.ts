@@ -110,7 +110,7 @@ export class ProductsService {
             queryOptions['path.2'] = fromUrlString(path.subGroupName)
         }
         const {minPrice, maxPrice} = await this.getPriceRange(queryOptions)
-        const filtersQuery = this.formFilterQuery(filters)
+        const filtersQuery = this.formFilterQuery(filters, minPrice, maxPrice)
         queryOptions = {...queryOptions, ...filtersQuery}
         let query = this.productModel.find(queryOptions)
          .populate([
@@ -148,7 +148,7 @@ export class ProductsService {
         }
         const {minPrice, maxPrice} = await this.getPriceRange(queryOptions)
         const total = await this.productModel.count(queryOptions)
-        const filtersQuery = this.formFilterQuery(filters)
+        const filtersQuery = this.formFilterQuery(filters, minPrice, maxPrice)
         queryOptions = {...queryOptions, ...filtersQuery}
         let query = this.productModel.find(queryOptions)
          .populate([
@@ -231,7 +231,8 @@ export class ProductsService {
     }
 
     async assignToCategory(products: mongoose.Types.ObjectId[], category: CategoryDocument){
-        return await this.productModel.updateMany({_id: {'$in': products}}, {'$set': {category: category.id, path: category.path}})
+        const pathString = category.path.map(x => capitalize(x)).join('/')
+        return await this.productModel.updateMany({_id: {'$in': products}}, {'$set': {category: category.id, path: category.path, pathString}})
     }
 
     async clearCategory(products: mongoose.Types.ObjectId[]){
@@ -275,18 +276,22 @@ export class ProductsService {
         return {minPrice, maxPrice}
     }
 
-    private formFilterQuery(filters: IFilters): FilterQuery<ProductDocument>{
+    private formFilterQuery(filters: IFilters, minPrice: number, maxPrice: number): FilterQuery<ProductDocument>{
         const {sizes, colors, price, sale} = filters
         let filtersQuery: FilterQuery<ProductDocument> = {}
         //all filters have format of '[a b c ...]', except '[a b]' for price
         if(price  && /^\[\d+(\.\d+)?(\s\d+(\.\d+)?)?\]$/.test(price)){
             //cutting of '[' and ']' braces
             const prices = price.slice(1, -1).split(' ')
-            if(prices[0]){
-                filtersQuery.price = {'$gte': Number(prices[0])}
+            let min = Number(prices[0])
+            let max = Number(prices[1])
+            if(min > maxPrice || min < minPrice || min > max) min = minPrice
+            if(max > maxPrice || max < minPrice) max = maxPrice
+            if(min){
+                filtersQuery.price = {'$gte': min}
             }
-            if(prices[1]){
-                filtersQuery.price['$lte'] =  Number(prices[1])
+            if(max){
+                filtersQuery.price['$lte'] =  max
             }
         }
 

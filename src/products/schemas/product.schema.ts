@@ -7,7 +7,6 @@ export type ProductDocument = Document & Product
 
 export type Size = 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl'
 
-
 @Schema({
   toJSON: {
     virtuals: true,

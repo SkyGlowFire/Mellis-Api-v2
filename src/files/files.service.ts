@@ -13,7 +13,6 @@ export class FilesService {
     constructor(@InjectModel(File.name) private fileModel: Model<FileDocument>){}
 
     async uploadFile(file: Express.Multer.File): Promise<ObjectId>{
-        console.log(file);
         
         try {
             const fileExtension = file.originalname.split('.').pop()
@@ -24,7 +23,6 @@ export class FilesService {
                 Body: file.buffer,
                 Key: fileName
             }).promise()
-            console.log(file.mimetype)
             const newFile = await this.fileModel.create({
                 name: uploadResult.Key,
                 url: uploadResult.Location,

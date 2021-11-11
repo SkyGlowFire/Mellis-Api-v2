@@ -16,27 +16,48 @@ export class CategoriesService {
         @InjectModel(Product.name) private productModel: Model<ProductDocument>,
         @Inject(forwardRef(() => ProductsService)) private productsService: ProductsService){}
 
-    async getAll(){
+    async getCategories(){
         let data = await this.categoryModel.find({level:0})
         .populate([
-        {path: 'products', select: 'id'},
-        {path: "children",
-            populate: [
-                {path:'products', select: 'id'}, 
-                {path: "children", populate: [{path: 'products', select: 'id'}]}
+        {
+            path: "children",
+            populate: ["children",
+                {
+                    path: "bestseller",
+                    populate: "image"
+                }
             ]
-        }])
+        },
+        ])
+        return data
+    }
+
+    async getCategoriesTree(){
+        let data = await this.categoryModel.find({level:0})
+        .populate([
+        {path: "children",
+        select: 'children title totalProducts level path',
+            populate: [
+                {
+                    path: "children", 
+                    select: 'children title totalProducts level path'
+                }
+            ]
+        },
+        ])
         return data
     }
 
     async get(id: mongoose.Types.ObjectId){
-        const category = await this.categoryModel.findById(id).populate('products')
+        const category = await this.categoryModel.findById(id).populate(['products', {
+            path: 'bestseller', populate: 'image'
+        }])
         return category
     }
 
     async getCategoryProducts(id: mongoose.Types.ObjectId): Promise<ProductDocument[]>{
         const category = await this.categoryModel.findById(id)
-        const products = await this.productModel.find({_id: {'$in': category.products}})
+        const products = await this.productModel.find({_id: {'$in': category.products}}).populate('image')
         return products
     }
 
@@ -69,8 +90,9 @@ export class CategoriesService {
         const parent = category.parents.pop()
         await this.categoryModel.findByIdAndUpdate(parent, {'$pull': {children: id}})
         const {ids, products} = await this.parseChildren(id)
-        await this.categoryModel.deleteMany({_id: {'$in': ids}})
         await this.productsService.clearCategory(products)
+        await this.updateTotalProducts(id, products.length, 'dec')
+        await this.categoryModel.deleteMany({_id: {'$in': ids}})
         return category
     }
 
@@ -121,6 +143,9 @@ export class CategoriesService {
     private async updateTotalProducts(categoryId: mongoose.Types.ObjectId, totalProducts: number, action: 'inc' | 'dec'){
         const total = action === 'dec' ? -totalProducts : totalProducts
         const category = await this.categoryModel.findByIdAndUpdate(categoryId, {'$inc': {totalProducts: total}})
+        if(!category){
+            throw new NotFoundException('Category does not exist')
+        }
         const {parents} = category
         if(parents.length > 0){
             await this.categoryModel.updateMany({_id: {'$in': parents}}, {'$inc': {totalProducts: total}})
@@ -135,7 +160,7 @@ export class CategoriesService {
             ids.push(id)
             const current = await this.categoryModel.findById(id)
             products = products.concat(current.products)
-            await Promise.all(current.children.map(product => recursive(product)))
+            await Promise.all(current.children.map(category => recursive(category)))
         }
         await recursive(id)
         return {products, ids}
@@ -154,5 +179,9 @@ export class CategoriesService {
             if(!category) throw new NotFoundException(`Category ${categoryName}/${groupName}/${subGroupName} does not exist`)
         }
         return category
+    }
+
+     async selectBestseller(id: mongoose.Types.ObjectId, productId: mongoose.Types.ObjectId){
+        await this.categoryModel.findByIdAndUpdate(id, {'$set': {bestseller: productId}})
     }
 }

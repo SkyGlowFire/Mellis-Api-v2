@@ -12,6 +12,7 @@ import { User, UserSchema } from 'src/users/schemas/user.schema';
 import { CaslModule } from 'src/casl/casl.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SessionSerializer } from './session.serializer';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
   providers: [AuthService, LocalStrategy, JwtStrategy, GoogleStrategy, SessionSerializer],
@@ -19,6 +20,7 @@ import { SessionSerializer } from './session.serializer';
     UsersModule, 
     PassportModule.register({session: true}), 
     CaslModule,
+    EmailModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -33,4 +35,4 @@ import { SessionSerializer } from './session.serializer';
   ],
   controllers: [AuthController]
 })
-export class AuthModule {}
+export class AuthModule  {}

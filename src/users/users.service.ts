@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import {Model, UpdateQuery, Types} from 'mongoose'
@@ -9,6 +9,7 @@ import { UpdateUserDto } from './dto/update_user.dto';
 import { Address, AddressDocument } from './schemas/address.schema';
 import {Role, User, UserDocument} from './schemas/user.schema'
 import * as bcrypt from 'bcryptjs'
+import { Request } from 'express';
 
 @Injectable()
 export class UsersService {
@@ -28,7 +29,7 @@ export class UsersService {
     }
 
     async getByEmail(email: string): Promise<UserDocument>{
-        const user = await this.userModel.findOne({email}).select('+password')
+        const user = await this.userModel.findOne({email: email.toLowerCase()}).select('+password')
         return user
     }
 
@@ -37,16 +38,21 @@ export class UsersService {
         return user
     }
 
-    async create(dto: CreateUserDto): Promise<{access_token: string}>{
+    async create(dto: CreateUserDto, req: Request){
         const existingUser = await this.getByEmail(dto.email)
         if(existingUser){
             throw new ForbiddenException(`User with email ${dto.email} already exists`)
         }
         const user = await this.userModel.create(dto)
-        const payload = {sub: user.id}
-        return {
-            access_token: this.jwtService.sign(payload)
-        }
+        
+        req.logIn(user, (err) => {
+            if(err) throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR)
+        })
+        // const payload = {sub: user.id}
+        // return {
+        //     access_token: this.jwtService.sign(payload)
+        // }
+        return {success: true}
     }
 
     async delete(id: Types.ObjectId): Promise<UserDocument>{
@@ -107,4 +113,6 @@ export class UsersService {
         await this.userModel.findByIdAndUpdate(userId, {"$pull": {addresses: {id}}})
         return address
     }
+
+
 }

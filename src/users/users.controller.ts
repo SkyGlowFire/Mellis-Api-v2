@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards, Patch } from '@nestjs/common';
+import { Controller, Get, Post,  Delete, Param, Body, UseGuards, Patch, Req } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CheckPolicies } from 'src/casl/check-policy.decorator';
@@ -39,8 +39,8 @@ export class UsersController {
 
     @Public()
     @Post()
-    createUser(@Body() dto: CreateUserDto){
-        return this.usersService.create(dto)
+    createUser(@Body() dto: CreateUserDto, @Req() req){
+        return this.usersService.create(dto, req)
     }
 
     @ActionType(Action.Update)

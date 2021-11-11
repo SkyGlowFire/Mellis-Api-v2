@@ -7,10 +7,10 @@ export class UpdateUserDto{
     @MinLength(4)
     username: string
 
-    @Matches(/^([\w ]{2,30})?$/i, {message: 'First Name must be between 2 and 30 characters, and can contain only letters and spaces'})
+    @Matches(/^([\w А-Яа-яЁё]{2,30})?$/i, {message: 'First Name must be between 2 and 30 characters, and can contain only letters and spaces'})
     firstName: string
 
-    @Matches(/^([\w ]{2,30})?$/i, {message: 'Last Name must be between 2 and 30 characters, and can contain only letters and spaces'})
+    @Matches(/^([\w А-Яа-яЁё]{2,30})?$/i, {message: 'Last Name must be between 2 and 30 characters, and can contain only letters and spaces'})
     lastName: string
 
     @Matches(/^(((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10})?$/i, {message: 'Enter valid phone number'})

@@ -55,16 +55,16 @@ export class User{
     @Prop({default: 'customer'})
     role: Role
 
-    @Prop({unique: true})
+    @Prop({unique: true, sparse: true})
     googleId: string
 
-    @Prop({unique: true})
+    @Prop({unique: true, sparse: true})
     facebookId: string
 
-    @Prop({unique: true})
+    @Prop({unique: true, sparse: true})
     twitterId: string
 
-    @Prop({unique: true})
+    @Prop({unique: true, sparse: true})
     instagramId: string
 
     @Prop()
@@ -75,6 +75,12 @@ export class User{
 
     @Prop({ type: [{ type: mongooseSchema.Types.ObjectId, ref: 'Address' }] })
     addresses: Address[]
+
+    @Prop()
+    resetPasswordToken: string
+
+    @Prop()
+    resetPasswordExpire: number
 }
 
 export const UserSchema = SchemaFactory.createForClass<User>(User)

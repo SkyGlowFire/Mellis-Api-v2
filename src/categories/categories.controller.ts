@@ -20,11 +20,17 @@ export class CategoriesController {
     @Public()
     @Get()
     getCategories(){
-        return this.categoriesService.getAll()
+        return this.categoriesService.getCategories()
     }
 
     @Public()
-    @Get('/:id')
+    @Get('/tree')
+    getCategoriesTree(){
+        return this.categoriesService.getCategoriesTree()
+    }
+
+    @Public()
+    @Get('/:id/details')
     getCategory(@Param('id') id: mongoose.Types.ObjectId){
         return this.categoriesService.get(id)
     }
@@ -68,5 +74,12 @@ export class CategoriesController {
     @Patch('/:id/unlinkProducts')
     unlinkProducts(@Param('id') id: mongoose.Types.ObjectId, @Body('products') products: mongoose.Types.ObjectId[]){
         return this.categoriesService.unlinkProducts(id, products)
+    }
+
+    @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, Category))
+    @UseGuards(PoliciesGuard)
+    @Patch('/:id/bestseller')
+    selectBestseller(@Param('id') id: mongoose.Types.ObjectId, @Body('product') product: mongoose.Types.ObjectId){
+        return this.categoriesService.selectBestseller(id, product)
     }
 }

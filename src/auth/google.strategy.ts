@@ -11,11 +11,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
             callbackURL: "/api/v1/auth/google/redirect",
             proxy: true,
-            scope: ['email', 'profile']
+            scope: ['email', 'profile'],
+            // passReqToCallback: true,
         })
     }
 
-    async validate(accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback): Promise<void>{
+    async validate(_accessToken: string, _refreshToken: string, profile: Profile, done: VerifyCallback): Promise<void>{
         const user = await this.authService.loginWithGoogle(profile)
         if(!user){
             throw new UnauthorizedException()
