@@ -12,9 +12,8 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { IFilters, IPath, ProductsService } from './products.service';
 import { Product } from '../casl/casl-ability.factory';
-import { AuthenticatedGuard } from 'src/auth/authenticated.guard';
 
-@UseGuards(AuthenticatedGuard)
+@UseGuards(JwtAuthGuard)
 @Controller('products')
 export class ProductsController {
 

@@ -1,5 +1,4 @@
-import { Body, Controller, Get, Post, Patch, Delete, Put, Param, UseGuards } from '@nestjs/common';
-import { ObjectId } from 'mongoose';
+import { Body, Controller, Get, Post, Patch, Delete, Param, UseGuards } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -9,10 +8,9 @@ import { PoliciesGuard } from 'src/casl/policies.guard';
 import { Category } from './schemas/category.schema';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Public } from 'src/auth/public.decorator';
-import { AuthenticatedGuard } from 'src/auth/authenticated.guard';
 import * as mongoose from 'mongoose'
 
-@UseGuards(AuthenticatedGuard)
+@UseGuards(JwtAuthGuard)
 @Controller('categories')
 export class CategoriesController {
     constructor(private readonly categoriesService: CategoriesService){}

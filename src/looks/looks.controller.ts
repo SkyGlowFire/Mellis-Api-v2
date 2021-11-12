@@ -12,9 +12,8 @@ import { CreateLookDto } from './dto/create-look.dto';
 import { UpdateLookDto } from './dto/update-look.dto';
 import { LooksService } from './looks.service';
 import { Look } from '../casl/casl-ability.factory';
-import { AuthenticatedGuard } from 'src/auth/authenticated.guard';
 
-@UseGuards(AuthenticatedGuard)
+@UseGuards(JwtAuthGuard)
 @Controller('looks')
 export class LooksController {
     constructor(private readonly looksService: LooksService){}

@@ -16,9 +16,8 @@ import {User} from '../casl/casl-ability.factory'
 import { ActionType } from 'src/auth/action-type.decorator';
 import { OwnerGuard } from './owner.guard';
 import { Roles } from 'src/casl/roles.decorator';
-import { AuthenticatedGuard } from 'src/auth/authenticated.guard';
 
-@UseGuards(AuthenticatedGuard)
+@UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
 

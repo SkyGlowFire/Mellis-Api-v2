@@ -8,6 +8,8 @@ import { User, UserDocument } from 'src/users/schemas/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import * as crypto from 'crypto'
 import { EmailService } from 'src/email/email.service';
+import { ConfigService } from '@nestjs/config';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +17,7 @@ export class AuthService {
         private usersService: UsersService, 
         private jwtService: JwtService,
         private emailService: EmailService,
+        private configService: ConfigService,
         @InjectModel(User.name) private userModel: Model<UserDocument>){}
 
     async validateUser(email: string, pas: string): Promise<UserDocument>{
@@ -45,14 +48,25 @@ export class AuthService {
         return user
     }
 
-    async login(userId: Types.ObjectId): Promise<{access_token: string}>{
-        
-        if(!userId) {
-            throw new UnauthorizedException()
-        }
+    async login(userId: Types.ObjectId, res: Response, from?: string){
+        if(!userId) throw new UnauthorizedException()
+        const cookieOptions = {
+            expires: new Date(
+            Date.now() + Number(this.configService.get('JWT_EXPIRE')) * 24 * 60 * 60 * 1000
+            ),
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production'
+        };
+
         const payload = {sub: userId}
-        return {
-            access_token: this.jwtService.sign(payload)
+        const token = this.jwtService.sign(payload)
+
+        res.cookie('auth', token, cookieOptions)
+
+        if(from){
+            res.redirect(`${this.configService.get('CLIENT_URI')}${from}`)
+        } else {
+            res.json({success: true})
         }
     }
 
@@ -79,7 +93,7 @@ export class AuthService {
         }
     }
 
-    async resetPassword(token: string, password: string){
+    async resetPassword(token: string, password: string, res: Response){
         const resetPasswordToken = crypto
             .createHash('sha256')
             .update(token)
@@ -92,5 +106,6 @@ export class AuthService {
         user.resetPasswordExpire = undefined
         user.resetPasswordToken = undefined
         await user.save()
+        await this.login(user._id, res)
     }
 }

@@ -12,7 +12,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
             callbackURL: "/api/v1/auth/google/redirect",
             proxy: true,
             scope: ['email', 'profile'],
-            // passReqToCallback: true,
         })
     }
 

@@ -1,15 +1,13 @@
 import { Controller, Get, Param, Query, Post, Req, Res, UseGuards, Body, Put } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { Types } from 'mongoose';
 import { GetUser } from 'src/users/user.decorator';
 import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
-import { AuthenticatedGuard } from './authenticated.guard';
 import { GoogleAuthGuard } from './google-auth.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { LocalAuthGuard } from './local-auth.guard';
 import { Public } from './public.decorator';
-import { ConfigService } from '@nestjs/config';
 import { ForgotPasswDto } from './dto/forgot_passw.dto';
 import { ResetPasswDto } from './dto/reset_passw.dto';
 
@@ -18,26 +16,29 @@ export class AuthController {
     constructor(
         private authService: AuthService, 
         private usersService: UsersService,
-        private configService: ConfigService
         ){}
 
     @Public()
     @Post('/login-local')
     @UseGuards(LocalAuthGuard)
-    login(@GetUser('id') user: Types.ObjectId){
-        return this.authService.login(user)
+    login(@GetUser('id') user: Types.ObjectId, @Res() res: Response){
+        return this.authService.login(user, res)
     }
 
-    @UseGuards(AuthenticatedGuard)
+    @UseGuards(JwtAuthGuard)
     @Get('/me')
     getMe(@GetUser('id') userId: Types.ObjectId){
         return this.usersService.get(userId)
     }
 
-    @UseGuards(AuthenticatedGuard)
+    @UseGuards(JwtAuthGuard)
     @Get('/logout')
-    logout(@Req() req: Request ){
-        return req.logOut()
+    logout(@Res() res ){
+        return res.status(200).cookie('auth', undefined, {
+            expires: new Date(Date.now() + 10 * 1000),
+            httpOnly: true,
+        })
+        .json({ success: true });
     }
 
     @Get('login-google')
@@ -46,10 +47,10 @@ export class AuthController {
 
     @Get('google/redirect')
     @UseGuards(GoogleAuthGuard)
-    googleAuthRedirect(@Query('state') state: string, @Res() res) {
+    googleAuthRedirect(@Query('state') state: string, @Res() res, @GetUser('id') user: Types.ObjectId) {
         const parsedState = new URLSearchParams(state)
         const from = parsedState.get('from') || 'profile/info'
-        return res.redirect(`${this.configService.get('CLIENT_URI')}${from}`)
+        return this.authService.login(user, res, from)
     }
 
     @Public()
@@ -60,7 +61,7 @@ export class AuthController {
 
     @Public()
     @Put('/resetPasword/:token')
-    resetPassword(@Body() dto: ResetPasswDto, @Param('token') token: string ){
-        return this.authService.resetPassword(token, dto.password)
+    resetPassword(@Body() dto: ResetPasswDto, @Param('token') token: string, @Res({passthrough: true}) res ){
+        return this.authService.resetPassword(token, dto.password, res)
     }
 }

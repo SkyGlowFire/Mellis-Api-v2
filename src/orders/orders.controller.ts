@@ -8,9 +8,8 @@ import {OrderStatus} from './schemas/order.schema'
 import { GetUser } from 'src/users/user.decorator';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { AuthenticatedGuard } from 'src/auth/authenticated.guard';
 
-@UseGuards(AuthenticatedGuard)
+@UseGuards(JwtAuthGuard)
 @UseGuards(PoliciesGuard)
 @Controller('orders')
 export class OrdersController {

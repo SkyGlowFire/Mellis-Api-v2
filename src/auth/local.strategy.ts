@@ -2,7 +2,6 @@ import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@n
 import { AuthService } from './auth.service';
 import {PassportStrategy} from '@nestjs/passport'
 import {Strategy} from 'passport-local'
-import { ObjectId } from 'mongoose';
 import { UserDocument } from 'src/users/schemas/user.schema';
 
 @Injectable()

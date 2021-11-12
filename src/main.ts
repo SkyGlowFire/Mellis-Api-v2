@@ -43,22 +43,22 @@ async function bootstrap() {
   }
   app.enableCors(corsOptions)
 
-  const sessionOptions = {
-    cookie: {
-      maxAge: 60*60*1000,
-      httpOnly: true,
-      sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
-      secure: process.env.NODE_ENV === "production"
-      },
-    secret: configService.get('COOKIE_SECRET'),
-    resave: false,
-    saveUninitialized: false,
-    proxy: true
-  }
+  // const sessionOptions = {
+  //   cookie: {
+  //     maxAge: 60*60*1000,
+  //     httpOnly: true,
+  //     sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
+  //     secure: process.env.NODE_ENV === "production"
+  //     },
+  //   secret: configService.get('COOKIE_SECRET'),
+  //   resave: false,
+  //   saveUninitialized: false,
+  //   proxy: true
+  // }
 
-  app.use(session(sessionOptions))
-  app.use(passport.initialize())
-  app.use(passport.session())
+  // app.use(session(sessionOptions))
+  // app.use(passport.initialize())
+  // app.use(passport.session())
   
   config.update({
     accessKeyId: configService.get('AWS_ACCESS_KEY_ID'),
