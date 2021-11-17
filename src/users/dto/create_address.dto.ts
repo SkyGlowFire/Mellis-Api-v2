@@ -1,4 +1,4 @@
-import { IsNotEmpty, Min, Matches, Length, IsInt, MinLength} from "class-validator"
+import { IsNotEmpty, Min, Matches, Length, IsInt, MinLength, IsOptional} from "class-validator"
 
 export class CreateAddressDto{
     @IsNotEmpty()
@@ -9,7 +9,7 @@ export class CreateAddressDto{
     @MinLength(2)
     lastName: string
 
-    @IsNotEmpty()
+    @IsOptional()
     @Matches(/^(((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10})?$/, 
     {message: 'Please provide valid phone number'})
     phone: number

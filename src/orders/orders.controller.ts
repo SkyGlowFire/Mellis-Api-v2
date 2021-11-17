@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Patch, UseGuards, Param, Body } from '@nestjs/common';
 import { ObjectId } from 'mongoose';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { PoliciesGuard } from 'src/casl/policies.guard';
 import { Roles } from 'src/casl/roles.decorator';
 import { Role, UserDocument } from 'src/users/schemas/user.schema';
 import {OrderStatus} from './schemas/order.schema'
@@ -10,7 +9,6 @@ import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 
 @UseGuards(JwtAuthGuard)
-@UseGuards(PoliciesGuard)
 @Controller('orders')
 export class OrdersController {
      constructor(private readonly ordersService: OrdersService){}

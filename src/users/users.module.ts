@@ -35,7 +35,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
         schema.pre<UserDocument>('save', async function(next: Function){
           if(!this.isModified('email')) return next()
-          this.email = this.email.toLowerCase()
+          this.email = this.email?.toLowerCase()
           next()
         })
 

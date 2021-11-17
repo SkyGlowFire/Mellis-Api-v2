@@ -11,8 +11,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let message: string | string[] = exception.message
     const errResponse = exception.getResponse() as {message: string[] | string}
     console.log(exception)
+    console.log(errResponse)
     if(status === 403){
-      message = errResponse.message || 'You are not authorized.'
+      if(typeof errResponse === 'string'){
+        message = errResponse
+      } else {
+        message = errResponse.message || 'You are not authorized.'
+      }    
     }
     if(status === 400){
       message = errResponse.message

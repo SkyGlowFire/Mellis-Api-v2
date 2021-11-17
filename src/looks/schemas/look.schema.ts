@@ -1,6 +1,7 @@
 import {Schema, Prop, SchemaFactory} from '@nestjs/mongoose'
 import {Document, ObjectId, Schema as mongooseSchema} from 'mongoose'
 import * as mongoose from 'mongoose'
+
 export type LookDocument = Document & Look
 
 export type Orientation = 'vertical' | 'horizontal'

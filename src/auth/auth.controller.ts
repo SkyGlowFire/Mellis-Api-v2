@@ -10,6 +10,11 @@ import { LocalAuthGuard } from './local-auth.guard';
 import { Public } from './public.decorator';
 import { ForgotPasswDto } from './dto/forgot_passw.dto';
 import { ResetPasswDto } from './dto/reset_passw.dto';
+import { FacebookAuthGuard } from './facebook-auth.guard';
+import { VkAuthGuard } from './vk-auth.guard';
+import { CreateUserDto } from './dto/create_user.dto';
+import { UserDocument } from 'src/users/schemas/user.schema';
+import { JwtRefreshGuard } from './jwt-refresh.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -25,29 +30,63 @@ export class AuthController {
         return this.authService.login(user, res)
     }
 
+    @Public()
+    @Post('/signup')
+    createUser(@Body() dto: CreateUserDto, @Res() res, @Query('from') from: string){
+        return this.authService.signup(dto, res, from)
+    }
+
     @UseGuards(JwtAuthGuard)
     @Get('/me')
-    getMe(@GetUser('id') userId: Types.ObjectId){
-        return this.usersService.get(userId)
+    getMe(@GetUser() user: UserDocument){
+        return user
+    }
+
+    @UseGuards(JwtRefreshGuard)
+    @Get('/refresh')
+    refresh(@GetUser() user: UserDocument, @Res() res){
+        const accessToken = this.authService.getJwtAccessToken(user._id)
+        const cookieOptions = this.authService.getAccessCookieOptions()
+        return res.cookie('auth', accessToken, cookieOptions).json({success: true})
     }
 
     @UseGuards(JwtAuthGuard)
     @Get('/logout')
-    logout(@Res() res ){
-        return res.status(200).cookie('auth', undefined, {
-            expires: new Date(Date.now() + 10 * 1000),
-            httpOnly: true,
-        })
-        .json({ success: true });
+    logout(@Res({passthrough: true}) res, @GetUser('_id') userId: Types.ObjectId ){
+        return this.authService.logout(res, userId)
     }
 
     @Get('login-google')
     @UseGuards(GoogleAuthGuard)
     async googleAuth(@Req() req) {}
 
+    @Get('login-facebook')
+    @UseGuards(FacebookAuthGuard)
+    async facebookAuth(@Req() req) {}
+
+    @Get('login-vkontakte')
+    @UseGuards(VkAuthGuard)
+    async vkAuth(@Req() req) {}
+
     @Get('google/redirect')
     @UseGuards(GoogleAuthGuard)
     googleAuthRedirect(@Query('state') state: string, @Res() res, @GetUser('id') user: Types.ObjectId) {
+        const parsedState = new URLSearchParams(state)
+        const from = parsedState.get('from') || 'profile/info'
+        return this.authService.login(user, res, from)
+    }
+
+    @Get('facebook/redirect')
+    @UseGuards(FacebookAuthGuard)
+    facebookAuthRedirect(@Query('state') state: string, @Res() res, @GetUser('id') user: Types.ObjectId) {
+        const parsedState = new URLSearchParams(state)
+        const from = parsedState.get('from') || 'profile/info'
+        return this.authService.login(user, res, from)
+    }
+
+    @Get('vk/redirect')
+    @UseGuards(VkAuthGuard)
+    vkAuthRedirect(@Query('state') state: string, @Res() res, @GetUser('id') user: Types.ObjectId) {
         const parsedState = new URLSearchParams(state)
         const from = parsedState.get('from') || 'profile/info'
         return this.authService.login(user, res, from)

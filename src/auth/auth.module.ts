@@ -12,14 +12,18 @@ import { User, UserSchema } from 'src/users/schemas/user.schema';
 import { CaslModule } from 'src/casl/casl.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EmailModule } from 'src/email/email.module';
+import { FacebookStrategy } from './facebook.strategy';
+import { VkStrategy } from './vk.strategy';
+import { JwtRefreshTokenStrategy } from './jwt-refresh.strategy';
 
 @Module({
-  providers: [AuthService, LocalStrategy, JwtStrategy, GoogleStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy, JwtRefreshTokenStrategy, GoogleStrategy, FacebookStrategy, VkStrategy],
   imports: [
     UsersModule, 
     PassportModule, 
     CaslModule,
     EmailModule,
+    ConfigModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -28,7 +32,7 @@ import { EmailModule } from 'src/email/email.module';
       }),
       inject: [ConfigService]
     }),
-     MongooseModule.forFeature([{
+    MongooseModule.forFeature([{
       name: User.name,
       schema: UserSchema}])
   ],

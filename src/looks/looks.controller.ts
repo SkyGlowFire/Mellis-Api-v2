@@ -3,7 +3,7 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ObjectId } from 'mongoose';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Public } from 'src/auth/public.decorator';
-import { Action, AppAbility } from 'src/casl/casl-ability.factory';
+import { AppAbility } from 'src/casl/casl-ability.factory';
 import { CheckPolicies } from 'src/casl/check-policy.decorator';
 import { PoliciesGuard } from 'src/casl/policies.guard';
 import { Roles } from 'src/casl/roles.decorator';
@@ -11,7 +11,7 @@ import { Role } from 'src/users/schemas/user.schema';
 import { CreateLookDto } from './dto/create-look.dto';
 import { UpdateLookDto } from './dto/update-look.dto';
 import { LooksService } from './looks.service';
-import { Look } from '../casl/casl-ability.factory';
+import { Look } from 'src/casl/entities';
 
 @UseGuards(JwtAuthGuard)
 @Controller('looks')
@@ -43,21 +43,21 @@ export class LooksController {
     }
 
     @UseGuards(PoliciesGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, Look))
+    @CheckPolicies((ability: AppAbility) => ability.can('update', Look))
     @Patch('/enable')
     enableLooks(@Body('looks') looks: ObjectId[]){
         return this.looksService.enableLooks(looks)
     }
 
     @UseGuards(PoliciesGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, Look))
+    @CheckPolicies((ability: AppAbility) => ability.can('update', Look))
     @Patch('/disable')
     disableLooks(@Body('looks') looks: ObjectId[]){
         return this.looksService.disableLooks(looks)
     }
 
     @UseGuards(PoliciesGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Action.Create, Look))
+    @CheckPolicies((ability: AppAbility) => ability.can('create', Look))
     @UseInterceptors(FileFieldsInterceptor([
         {name: 'image', maxCount: 1}
     ]))
@@ -68,7 +68,7 @@ export class LooksController {
     }
 
     @UseGuards(PoliciesGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, Look))
+    @CheckPolicies((ability: AppAbility) => ability.can('update', Look))
     @UseInterceptors(FileFieldsInterceptor([
         {name: 'image', maxCount: 1}
     ]))
@@ -79,14 +79,14 @@ export class LooksController {
     }
 
     @UseGuards(PoliciesGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Action.Delete, Look))
+    @CheckPolicies((ability: AppAbility) => ability.can('delete', Look))
     @Delete('/:id')
     dleteLook(@Param('id') id: ObjectId){
         return this.looksService.delete(id)
     }
 
     @UseGuards(PoliciesGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Action.Delete, Look))
+    @CheckPolicies((ability: AppAbility) => ability.can('delete', Look))
     @Patch('/delete-many')
     deleteLooks(@Body('looks') ids: ObjectId[]){
         return this.looksService.deleteMany(ids)

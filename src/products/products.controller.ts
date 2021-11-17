@@ -3,7 +3,7 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import * as mongoose from 'mongoose';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Public } from 'src/auth/public.decorator';
-import { Action, AppAbility } from 'src/casl/casl-ability.factory';
+import { AppAbility } from 'src/casl/casl-ability.factory';
 import { CheckPolicies } from 'src/casl/check-policy.decorator';
 import { PoliciesGuard } from 'src/casl/policies.guard';
 import { Roles } from 'src/casl/roles.decorator';
@@ -11,7 +11,7 @@ import { Role } from 'src/users/schemas/user.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { IFilters, IPath, ProductsService } from './products.service';
-import { Product } from '../casl/casl-ability.factory';
+import { Product } from 'src/casl/entities';
 
 @UseGuards(JwtAuthGuard)
 @Controller('products')
@@ -56,21 +56,21 @@ export class ProductsController {
     }
 
     @UseGuards(PoliciesGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, Product))
+    @CheckPolicies((ability: AppAbility) => ability.can('update', Product))
     @Patch('/enable')
     enableProducs(@Body('products') products: mongoose.Types.ObjectId[]){
         return this.productsService.enableProducts(products)
     }
 
     @UseGuards(PoliciesGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, Product))
+    @CheckPolicies((ability: AppAbility) => ability.can('update', Product))
     @Patch('/disable')
     dsableProducs(@Body('products') products: mongoose.Types.ObjectId[]){
         return this.productsService.disableProducts(products)
     }
 
     @UseGuards(PoliciesGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Action.Create, Product))
+    @CheckPolicies((ability: AppAbility) => ability.can('create', Product))
     @UseInterceptors(FileFieldsInterceptor([
         {name: 'image', maxCount: 1},
         {name: 'media', maxCount: 8}
@@ -82,7 +82,7 @@ export class ProductsController {
     }
 
     @UseGuards(PoliciesGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, Product))
+    @CheckPolicies((ability: AppAbility) => ability.can('update', Product))
     @UseInterceptors(FileFieldsInterceptor([
         {name: 'image', maxCount: 1},
         {name: 'media', maxCount: 8}
@@ -94,28 +94,28 @@ export class ProductsController {
     }
 
     @UseGuards(PoliciesGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Action.Delete, Product))
+    @CheckPolicies((ability: AppAbility) => ability.can('delete', Product))
     @Delete('/:id')
     deleteProduct(@Param('id') id: mongoose.Types.ObjectId){
         return this.productsService.delete(id)
     }
 
     @UseGuards(PoliciesGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Action.Delete, Product))
+    @CheckPolicies((ability: AppAbility) => ability.can('delete', Product))
     @Patch('/delete-many')
     deleteProducts(@Body('products') ids: mongoose.Types.ObjectId[]){
         return this.productsService.deleteMany(ids)
     }
 
     @UseGuards(PoliciesGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, Product))
+    @CheckPolicies((ability: AppAbility) => ability.can('update', Product))
     @Patch('/:id/add-related-products')
     addRelatedProducts(@Param('id') id: mongoose.Types.ObjectId, @Body('products') products: mongoose.Types.ObjectId[]){
         return this.productsService.addRelatedProducts(id, products)
     }
 
     @UseGuards(PoliciesGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, Product))
+    @CheckPolicies((ability: AppAbility) => ability.can('update', Product))
     @Patch('/:id/remove-related-products')
     removeRelatedProducts(@Param('id') id: mongoose.Types.ObjectId, @Body('products') products: mongoose.Types.ObjectId[]){
         return this.productsService.removeRelatedProducts(id, products)

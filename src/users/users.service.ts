@@ -1,15 +1,13 @@
-import { ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import {Model, UpdateQuery, Types} from 'mongoose'
 import { CreateAddressDto } from './dto/create_address.dto';
-import { CreateUserDto } from './dto/create_user.dto';
 import { UpdateAddressDto } from './dto/update_adress.dto';
 import { UpdateUserDto } from './dto/update_user.dto';
 import { Address, AddressDocument } from './schemas/address.schema';
 import {Role, User, UserDocument} from './schemas/user.schema'
 import * as bcrypt from 'bcryptjs'
-import { Request } from 'express';
 
 @Injectable()
 export class UsersService {
@@ -28,31 +26,39 @@ export class UsersService {
         return user
     }
 
+    async setRefreshToken(token: string, id: Types.ObjectId){
+        const refreshToken = await bcrypt.hash(token, 10)
+        await this.userModel.findByIdAndUpdate(id, {refreshToken})
+    }
+
+    async removeRefreshToken(id: Types.ObjectId){
+        await this.userModel.findByIdAndUpdate(id, {'$unset': {refreshToken: 1}})
+    }
+
+    async getUserIfRefreshTokenMatches(refreshToken: string, userId: Types.ObjectId) {
+    const user = await this.userModel.findById(userId);
+    const isRefreshTokenMatching = await bcrypt.compare(refreshToken, user.refreshToken);
+    if (isRefreshTokenMatching) return user;
+  }
+
     async getByEmail(email: string): Promise<UserDocument>{
         const user = await this.userModel.findOne({email: email.toLowerCase()}).select('+password')
         return user
     }
 
-     async getByGoogleId(googleId: string): Promise<UserDocument>{
+    async getByGoogleId(googleId: string): Promise<UserDocument>{
         const user = await this.userModel.findOne({googleId})
         return user
     }
 
-    async create(dto: CreateUserDto, req: Request){
-        const existingUser = await this.getByEmail(dto.email)
-        if(existingUser){
-            throw new ForbiddenException(`User with email ${dto.email} already exists`)
-        }
-        const user = await this.userModel.create(dto)
-        
-        req.logIn(user, (err) => {
-            if(err) throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR)
-        })
-        // const payload = {sub: user.id}
-        // return {
-        //     access_token: this.jwtService.sign(payload)
-        // }
-        return {success: true}
+    async getByFacebokId(facebookId: string): Promise<UserDocument>{
+        const user = await this.userModel.findOne({facebookId})
+        return user
+    }
+
+     async getByVkId(vkontakteId: string): Promise<UserDocument>{
+        const user = await this.userModel.findOne({vkontakteId})
+        return user
     }
 
     async delete(id: Types.ObjectId): Promise<UserDocument>{
