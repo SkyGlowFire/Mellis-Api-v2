@@ -20,7 +20,7 @@ export class User{
         type: String,
         required: true,
         match: [
-          /^[ a-zA-Z0-9А-Яа-я_-]{4,16}$/,
+          /^[ a-zA-Z0-9А-Яа-я_-]{4,60}$/,
           'Name must be between 4 and 16 characters length, can contain only letters, numbers and "-" or "_" symbols',
         ],
       })

@@ -1,9 +1,6 @@
 import { Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from 'src/users/schemas/user.schema';
-import { Model } from 'mongoose';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { TokenPayload } from './tokenPayload.interface';
@@ -19,7 +16,7 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(Strategy, 'jwt-ref
       jwtFromRequest: (req: Request) => {
         let token = null
         if(req && req.cookies){
-          token = req.cookies['refresh']
+          token = req.cookies['Refresh']
         }
         return token
       },
@@ -30,7 +27,7 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(Strategy, 'jwt-ref
   }
 
   async validate(req: Request, payload: TokenPayload) {
-    const refreshToken = req.cookies?.['refresh']
+    const refreshToken = req.cookies?.['Refresh']
     const user = await this.usersService.getUserIfRefreshTokenMatches(refreshToken, payload.sub)
     return user
   }

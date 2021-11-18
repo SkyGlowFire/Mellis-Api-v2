@@ -4,36 +4,36 @@ import { Types } from 'mongoose';
 import { GetUser } from 'src/users/user.decorator';
 import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
-import { GoogleAuthGuard } from './google-auth.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { LocalAuthGuard } from './local-auth.guard';
 import { Public } from './public.decorator';
 import { ForgotPasswDto } from './dto/forgot_passw.dto';
 import { ResetPasswDto } from './dto/reset_passw.dto';
-import { FacebookAuthGuard } from './facebook-auth.guard';
-import { VkAuthGuard } from './vk-auth.guard';
 import { CreateUserDto } from './dto/create_user.dto';
 import { UserDocument } from 'src/users/schemas/user.schema';
 import { JwtRefreshGuard } from './jwt-refresh.guard';
+import { GoogleAutService } from './google-auth.service';
+import SocialLoginDto from './dto/social-login.dto';
 
 @Controller('auth')
 export class AuthController {
     constructor(
         private authService: AuthService, 
-        private usersService: UsersService,
+        private googleAuthService: GoogleAutService
         ){}
 
     @Public()
     @Post('/login-local')
     @UseGuards(LocalAuthGuard)
-    login(@GetUser('id') user: Types.ObjectId, @Res() res: Response){
+    login(@GetUser() user: UserDocument, @Res({passthrough: true}) res: Response){
         return this.authService.login(user, res)
     }
 
     @Public()
     @Post('/signup')
-    createUser(@Body() dto: CreateUserDto, @Res() res, @Query('from') from: string){
-        return this.authService.signup(dto, res, from)
+    async createUser(@Body() dto: CreateUserDto, @Res({passthrough: true}) res){
+        const user = await  this.authService.signup(dto)
+        return this.authService.login(user, res)
     }
 
     @UseGuards(JwtAuthGuard)
@@ -47,7 +47,7 @@ export class AuthController {
     refresh(@GetUser() user: UserDocument, @Res() res){
         const accessToken = this.authService.getJwtAccessToken(user._id)
         const cookieOptions = this.authService.getAccessCookieOptions()
-        return res.cookie('auth', accessToken, cookieOptions).json({success: true})
+        return res.cookie('Authentication', accessToken, cookieOptions).json({success: true})
     }
 
     @UseGuards(JwtAuthGuard)
@@ -56,46 +56,22 @@ export class AuthController {
         return this.authService.logout(res, userId)
     }
 
-    @Get('login-google')
-    @UseGuards(GoogleAuthGuard)
-    async googleAuth(@Req() req) {}
+    @Post('login-google')
+    async googleAuth(@Body() dto: SocialLoginDto, @Res({passthrough: true}) res) {
+        const user = await this.googleAuthService.authenticate(dto.token)
+        return this.authService.login(user, res)
+    }
 
     @Get('login-facebook')
-    @UseGuards(FacebookAuthGuard)
     async facebookAuth(@Req() req) {}
 
     @Get('login-vkontakte')
-    @UseGuards(VkAuthGuard)
     async vkAuth(@Req() req) {}
-
-    @Get('google/redirect')
-    @UseGuards(GoogleAuthGuard)
-    googleAuthRedirect(@Query('state') state: string, @Res() res, @GetUser('id') user: Types.ObjectId) {
-        const parsedState = new URLSearchParams(state)
-        const from = parsedState.get('from') || 'profile/info'
-        return this.authService.login(user, res, from)
-    }
-
-    @Get('facebook/redirect')
-    @UseGuards(FacebookAuthGuard)
-    facebookAuthRedirect(@Query('state') state: string, @Res() res, @GetUser('id') user: Types.ObjectId) {
-        const parsedState = new URLSearchParams(state)
-        const from = parsedState.get('from') || 'profile/info'
-        return this.authService.login(user, res, from)
-    }
-
-    @Get('vk/redirect')
-    @UseGuards(VkAuthGuard)
-    vkAuthRedirect(@Query('state') state: string, @Res() res, @GetUser('id') user: Types.ObjectId) {
-        const parsedState = new URLSearchParams(state)
-        const from = parsedState.get('from') || 'profile/info'
-        return this.authService.login(user, res, from)
-    }
 
     @Public()
     @Post('/resetPasword')
-    forgotPassword(@Body() dto: ForgotPasswDto){
-        return this.authService.forgotPassword(dto.email)
+    sendResetEmail(@Body() dto: ForgotPasswDto){
+        return this.authService.sendResetEmail(dto.email)
     }
 
     @Public()

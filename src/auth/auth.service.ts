@@ -3,9 +3,6 @@ import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcryptjs'
 import { Model, Types } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
-import { Profile as GoogleProfile } from 'passport-google-oauth20';
-import {Profile as FacebookProfile} from 'passport-facebook'
-import {Profile as VkProfile} from 'passport-vkontakte'
 import { User, UserDocument } from 'src/users/schemas/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import * as crypto from 'crypto'
@@ -30,72 +27,6 @@ export class AuthService {
         if(!user) throw new HttpException('User does not exist', HttpStatus.NOT_FOUND)
         const passwMatch = await bcrypt.compare(pas, user.password)
         if(!passwMatch) throw new HttpException('Wrong password', HttpStatus.FORBIDDEN)
-        return user
-    }
-
-    async loginWithGoogle(profile: GoogleProfile): Promise<UserDocument>{
-        let user = await this.usersService.getByGoogleId(profile.id)
-        if(user) return user
-        if(profile.emails?.[0]){
-            user = await this.usersService.getByEmail(profile.emails[0].value.toLowerCase())
-        }
-        if(!user){
-            user = await this.userModel.create({
-                username: profile.displayName,
-                email: profile.emails?.[0]?.value?.toLowerCase(),
-                googleId: profile.id,
-                thumbnail: profile.photos[0].value,
-                firstName: profile.name.givenName,
-                lastName: profile.name.familyName
-            })
-        } else {
-            user.googleId = profile.id;
-            await user.save()
-        }
-        return user
-    }
-
-    async loginWithVk(profile: VkProfile): Promise<UserDocument>{
-        let user = await this.usersService.getByVkId(profile.id)
-        if(user) return user
-        if(profile.emails?.[0]){
-            user = await this.usersService.getByEmail(profile.emails[0].value.toLowerCase())
-        }
-        if(!user){
-            user = await this.userModel.create({
-                username: profile.displayName,
-                email: profile.emails?.[0]?.value?.toLowerCase(),
-                vkontakteId: profile.id,
-                thumbnail: profile.photos[0].value,
-                firstName: profile.name.givenName,
-                lastName: profile.name.familyName
-            })
-        } else {
-            user.vkontakteId = profile.id;
-            await user.save()
-        }
-        return user
-    }
-
-    async loginWithFacebook(profile: FacebookProfile): Promise<UserDocument>{
-        let user = await this.usersService.getByFacebokId(profile.id)
-        if(user) return user
-        if(profile.emails?.[0]){
-            user = await this.usersService.getByEmail(profile.emails[0].value.toLowerCase())
-        }
-        if(!user){
-            user = await this.userModel.create({
-                username: profile.displayName,
-                email: profile.emails?.[0]?.value?.toLowerCase(),
-                facebookId: profile.id,
-                thumbnail: profile.photos?.[0]?.value,
-                firstName: profile.name.givenName,
-                lastName: profile.name.familyName
-            })
-        } else {
-            user.facebookId = profile.id;
-            await user.save()
-        }
         return user
     }
 
@@ -133,46 +64,45 @@ export class AuthService {
         };
     }
 
-    async login(userId: Types.ObjectId, res: Response, from?: string){
-        if(!userId) throw new UnauthorizedException()
-        const refreshToken = this.getJwtRefreshToken(userId)
-        const accessToken = this.getJwtAccessToken(userId)
+    async login(user: UserDocument, res: Response): Promise<UserDocument>{
+        console.log('login')
+        if(!user) throw new UnauthorizedException()
+        console.log('userid', user._id)
+        const refreshToken = this.getJwtRefreshToken(user._id)
+        const accessToken = this.getJwtAccessToken(user._id)
         const refreshCookieOptions = this.getRefreshCookieOptions()
         const accessCookieOptions = this.getAccessCookieOptions()
-        await this.usersService.setRefreshToken(refreshToken, userId)
+        await this.usersService.setRefreshToken(refreshToken, user._id)
+        console.log(refreshToken)
+        console.log(accessToken)
         res
-        .cookie('auth', accessToken, accessCookieOptions)
-        .cookie('refresh', refreshToken, refreshCookieOptions)
-
-        if(from){
-            res.redirect(`${this.configService.get('CLIENT_URI')}${from}`)
-        } else {
-            res.json({success: true})
-        }
+        .cookie('Authentication', accessToken, accessCookieOptions)
+        .cookie('Refresh', refreshToken, refreshCookieOptions)
+        return user
     }
 
     async logout(res: Response, userId: Types.ObjectId){
         await this.usersService.removeRefreshToken(userId)
-        res.cookie('auth', undefined, {
+        res.cookie('Authentication', undefined, {
             expires: new Date(Date.now() + 10 * 1000),
             httpOnly: true,
-        }).cookie('refresh', undefined, {
+        }).cookie('Refresh', undefined, {
             expires: new Date(Date.now() + 10 * 1000),
             httpOnly: true,
         })
         return { success: true }
     }
 
-    async signup(dto: CreateUserDto, res: Response, from?: string){
+    async signup(dto: CreateUserDto): Promise<UserDocument>{
         const existingUser = await this.usersService.getByEmail(dto.email)
         if(existingUser){
             throw new ForbiddenException(`User with email ${dto.email} already exists`)
         }
         const user = await this.userModel.create(dto)
-        return this.login(user._id, res, from)
+        return user
     }
 
-    async forgotPassword(email: string){
+    async sendResetEmail(email: string){
         const user = await this.usersService.getByEmail(email)
         if(!user) throw new NotFoundException('User with this email does not exist')
         const token = crypto.randomBytes(20).toString('hex')
