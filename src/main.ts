@@ -4,8 +4,6 @@ import { AppModule } from './app.module';
 import {ConfigService} from '@nestjs/config'
 import {config} from 'aws-sdk'
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
-import * as session from 'express-session';
-import passport = require('passport')
 import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser = require('cookie-parser')
 import {capitalize} from 'src/utils/textFormatters'
@@ -42,30 +40,12 @@ async function bootstrap() {
     }
   }
   app.enableCors(corsOptions)
-
-  // const sessionOptions = {
-  //   cookie: {
-  //     maxAge: 60*60*1000,
-  //     httpOnly: true,
-  //     sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
-  //     secure: process.env.NODE_ENV === "production"
-  //     },
-  //   secret: configService.get('COOKIE_SECRET'),
-  //   resave: false,
-  //   saveUninitialized: false,
-  //   proxy: true
-  // }
-
-  // app.use(session(sessionOptions))
-  // app.use(passport.initialize())
-  // app.use(passport.session())
   
   config.update({
     accessKeyId: configService.get('AWS_ACCESS_KEY_ID'),
     secretAccessKey: configService.get('AWS_SECRET_ACCESS_KEY'),
-    // region: configService.get('AWS_REGION')
   })
-  await app.listen(process.env.PORT);
+  await app.listen(process.env.PORT || 5000);
   console.log('Server listens on port ' + process.env.PORT)
 }
 bootstrap();
