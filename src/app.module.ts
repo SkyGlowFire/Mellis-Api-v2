@@ -43,8 +43,6 @@ import {join} from 'path'
         FROM_EMAIL: Joi.string().required(),
         GOOGLE_CLIENT_ID: Joi.string().required(),
         GOOGLE_CLIENT_SECRET: Joi.string().required(),
-        FACEBOOK_CLIENT_ID: Joi.string().required(),
-        FACEBOOK_CLIENT_SECRET: Joi.string().required(),
         VK_CLIENT_ID: Joi.string().required(),
         VK_CLIENT_SECRET: Joi.string().required(),
       })
