@@ -65,16 +65,12 @@ export class AuthService {
     }
 
     async login(user: UserDocument, res: Response): Promise<UserDocument>{
-        console.log('login')
         if(!user) throw new UnauthorizedException()
-        console.log('userid', user._id)
         const refreshToken = this.getJwtRefreshToken(user._id)
         const accessToken = this.getJwtAccessToken(user._id)
         const refreshCookieOptions = this.getRefreshCookieOptions()
         const accessCookieOptions = this.getAccessCookieOptions()
         await this.usersService.setRefreshToken(refreshToken, user._id)
-        console.log(refreshToken)
-        console.log(accessToken)
         res
         .cookie('Authentication', accessToken, accessCookieOptions)
         .cookie('Refresh', refreshToken, refreshCookieOptions)

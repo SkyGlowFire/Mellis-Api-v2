@@ -29,7 +29,6 @@ export class User{
     @Prop({
         type: String,
         unique: true,
-        // required: [true, 'Please add an email'],
         match: [
           /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
           'Please enter valid email',

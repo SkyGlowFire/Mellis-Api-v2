@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import {HttpModule} from '@nestjs/axios'
 import { UsersModule } from 'src/users/users.module';
 import { AuthService } from './auth.service';
 import {PassportModule} from '@nestjs/passport'
@@ -13,15 +14,17 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EmailModule } from 'src/email/email.module';
 import { JwtRefreshTokenStrategy } from './jwt-refresh.strategy';
 import { GoogleAutService } from './google-auth.service';
+import { VkAutService } from './vk-auth.service';
 
 @Module({
-  providers: [AuthService, LocalStrategy, JwtStrategy, JwtRefreshTokenStrategy, GoogleAutService],
+  providers: [AuthService, LocalStrategy, JwtStrategy, JwtRefreshTokenStrategy, GoogleAutService, VkAutService],
   imports: [
     UsersModule, 
     PassportModule, 
     CaslModule,
     EmailModule,
     ConfigModule,
+    HttpModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

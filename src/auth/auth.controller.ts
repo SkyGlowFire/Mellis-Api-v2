@@ -1,8 +1,7 @@
-import { Controller, Get, Param, Query, Post, Req, Res, UseGuards, Body, Put } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Controller, Get, Param, Post,  Res, UseGuards, Body, Put } from '@nestjs/common';
+import {Response } from 'express';
 import { Types } from 'mongoose';
 import { GetUser } from 'src/users/user.decorator';
-import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { LocalAuthGuard } from './local-auth.guard';
@@ -14,12 +13,14 @@ import { UserDocument } from 'src/users/schemas/user.schema';
 import { JwtRefreshGuard } from './jwt-refresh.guard';
 import { GoogleAutService } from './google-auth.service';
 import SocialLoginDto from './dto/social-login.dto';
+import { VkAutService } from './vk-auth.service';
 
 @Controller('auth')
 export class AuthController {
     constructor(
         private authService: AuthService, 
-        private googleAuthService: GoogleAutService
+        private googleAuthService: GoogleAutService,
+        private vkAuthService: VkAutService,
         ){}
 
     @Public()
@@ -62,11 +63,11 @@ export class AuthController {
         return this.authService.login(user, res)
     }
 
-    @Get('login-facebook')
-    async facebookAuth(@Req() req) {}
-
-    @Get('login-vkontakte')
-    async vkAuth(@Req() req) {}
+    @Post('login-vkontakte')
+    async vkAuth(@Body() dto: SocialLoginDto, @Res({passthrough: true}) res) {
+        const user = await this.vkAuthService.authenticate(dto.token)
+        return this.authService.login(user, res)
+    }
 
     @Public()
     @Post('/resetPasword')

@@ -31,7 +31,7 @@ export class OrdersController {
     }
 
     @Roles(Role.Admin, Role.Editor)
-    @Patch('/:id')
+    @Patch('/:id/status')
     updateOrderStatus(@Param('id') id: ObjectId, @Body('status') status: OrderStatus){
         return this.ordersService.updateOrderStatus(id, status)
     }
