@@ -7,6 +7,7 @@ import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.int
 import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser = require('cookie-parser')
 import {capitalize} from 'src/utils/textFormatters'
+import { EnvVars } from './types/environment';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {logger: console});
