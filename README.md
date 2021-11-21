@@ -1,9 +1,11 @@
 # Mellis Api
 
 ## Available scripts
-### npm run start
-### npm run start:dev
-### npm run start:prod
+npm run start
+ 
+npm run start:dev
+ 
+npm run start:prod
 
 ## Required environment variables
 
