@@ -45,7 +45,7 @@ async function bootstrap() {
     accessKeyId: configService.get('AWS_ACCESS_KEY_ID'),
     secretAccessKey: configService.get('AWS_SECRET_ACCESS_KEY'),
   })
-  await app.listen(process.env.PORT || 5000);
+  await app.listen(process.env.PORT || 3000);
   console.log('Server listens on port ' + process.env.PORT)
 }
 bootstrap();
