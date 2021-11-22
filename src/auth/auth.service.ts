@@ -43,7 +43,8 @@ export class AuthService {
         return {
             expires: new Date( Date.now() + ms(this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'))),
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production'
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax'
         };
     }
 
@@ -60,7 +61,8 @@ export class AuthService {
         return {
             expires: new Date( Date.now() + ms(this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME'))),
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production'
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax'
         };
     }
 
