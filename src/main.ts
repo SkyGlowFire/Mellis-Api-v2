@@ -10,7 +10,10 @@ import {capitalize} from 'src/utils/textFormatters'
 import { EnvVars } from './types/environment';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, {logger: console});
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    logger: console, 
+    cors: {credentials: true, origin: [process.env.CLIENT_URI, process.env.ADMIN_CONSOLE_URI]}
+  });
   app.set('trust proxy', 1)
   app.setGlobalPrefix('api/v1');
   const configService: ConfigService<EnvVars> = app.get(ConfigService)
