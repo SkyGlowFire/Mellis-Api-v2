@@ -84,9 +84,13 @@ export class AuthService {
         res.cookie('Authentication', undefined, {
             expires: new Date(Date.now() + 10 * 1000),
             httpOnly: true,
+            sameSite: 'none',
+            secure: true
         }).cookie('Refresh', undefined, {
             expires: new Date(Date.now() + 10 * 1000),
             httpOnly: true,
+            sameSite: 'none',
+            secure: true
         })
         return { success: true }
     }
