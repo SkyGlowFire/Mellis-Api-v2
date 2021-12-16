@@ -49,7 +49,7 @@ export class CategoriesController {
 
     @CheckPolicies((ability: AppAbility) => ability.can('create', Category))
     @UseGuards(PoliciesGuard)
-    @Post()
+    @Post('/data')
     addFromJsonData(@Body() dto: CategoryDataDto){
         return this.categoriesService.createFromJsonData(dto)
     }
