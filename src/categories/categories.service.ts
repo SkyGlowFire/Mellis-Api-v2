@@ -8,6 +8,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category, CategoryDocument } from './schemas/category.schema';
 import * as mongoose from 'mongoose'
+import { CategoryDataDto, CategoryData } from './dto/create-from-data.dto';
 
 @Injectable()
 export class CategoriesService {
@@ -82,6 +83,25 @@ export class CategoriesService {
             await this.categoryModel.findByIdAndUpdate(parentId, {"$push": {children: category.id}})
         }
         return category
+    }
+
+    async createFromJsonData(dto: CategoryDataDto){
+        const result = dto.data.map(async categoryData => await this.createRecursive({...categoryData, parentId: undefined}) )
+        await Promise.all(result)
+        return await this.getCategoriesTree()
+    }
+
+    async createRecursive(data: CategoryData & {parentId: mongoose.Schema.Types.ObjectId | undefined}){
+        const {children, ...rest} = data
+        const newCat = await this.create(rest)
+        const result = children.map(async childCategory => {
+            if(childCategory.title){
+                return await this.createRecursive({...childCategory, parentId: newCat._id})
+            } else {
+                return await this.create({...childCategory, parentId: newCat._id})
+            }
+        })
+        await Promise.all(result)
     }
 
     async delete(id: mongoose.Types.ObjectId){

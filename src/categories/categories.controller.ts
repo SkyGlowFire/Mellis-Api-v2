@@ -9,6 +9,7 @@ import { Category } from 'src/casl/entities';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Public } from 'src/auth/public.decorator';
 import * as mongoose from 'mongoose'
+import { CategoryDataDto } from './dto/create-from-data.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('categories')
@@ -44,6 +45,13 @@ export class CategoriesController {
     @Post()
     addCategory(@Body() dto: CreateCategoryDto){
         return this.categoriesService.create(dto)
+    }
+
+    @CheckPolicies((ability: AppAbility) => ability.can('create', Category))
+    @UseGuards(PoliciesGuard)
+    @Post()
+    addFromJsonData(@Body() dto: CategoryDataDto){
+        return this.categoriesService.createFromJsonData(dto)
     }
 
     @CheckPolicies((ability: AppAbility) => ability.can('delete', Category))
