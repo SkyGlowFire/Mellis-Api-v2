@@ -7,7 +7,7 @@ export class CategoryData{
 
     @IsOptional()
     @Matches(/^([\w .\/-]{15,700})?$/i)
-    text: string | null
+    text?: string | null
 
     @IsArray()
     children: CategoryData[] | string[]

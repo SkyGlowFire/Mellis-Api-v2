@@ -91,14 +91,15 @@ export class CategoriesService {
         return await this.getCategoriesTree()
     }
 
-    async createRecursive(data: CategoryData & {parentId: mongoose.Schema.Types.ObjectId | undefined}){
+    async createRecursive(data: CategoryData & {parentId?: mongoose.Schema.Types.ObjectId | undefined}){
         const {children, ...rest} = data
+        console.log(data)
         const newCat = await this.create(rest)
         const result = children.map( childCategory => {
             if(childCategory.title){
                 return this.createRecursive({...childCategory, parentId: newCat._id})
             } else {
-                return this.create({...childCategory, parentId: newCat._id})
+                return this.create({title: childCategory, parentId: newCat._id})
             }
         })
         return await Promise.all(result)

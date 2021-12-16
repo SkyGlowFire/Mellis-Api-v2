@@ -8,8 +8,8 @@ export class CreateCategoryDto{
 
     @IsOptional()
     @Matches(/^([\w .\/-]{15,700})?$/i)
-    text: string | null
+    text?: string | null
 
     @IsOptional()
-    parentId: null | ObjectId
+    parentId?: null | ObjectId
 }
