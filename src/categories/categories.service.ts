@@ -86,7 +86,7 @@ export class CategoriesService {
     }
 
     async createFromJsonData(dto: CategoryDataDto){
-        const result = dto.data.map(async categoryData => await this.createRecursive({...categoryData, parentId: undefined}) )
+        const result = dto.data.map(categoryData =>  this.createRecursive({...categoryData, parentId: undefined}) )
         await Promise.all(result)
         return await this.getCategoriesTree()
     }
@@ -94,14 +94,14 @@ export class CategoriesService {
     async createRecursive(data: CategoryData & {parentId: mongoose.Schema.Types.ObjectId | undefined}){
         const {children, ...rest} = data
         const newCat = await this.create(rest)
-        const result = children.map(async childCategory => {
+        const result = children.map( childCategory => {
             if(childCategory.title){
-                return await this.createRecursive({...childCategory, parentId: newCat._id})
+                return this.createRecursive({...childCategory, parentId: newCat._id})
             } else {
-                return await this.create({...childCategory, parentId: newCat._id})
+                return this.create({...childCategory, parentId: newCat._id})
             }
         })
-        await Promise.all(result)
+        return await Promise.all(result)
     }
 
     async delete(id: mongoose.Types.ObjectId){
