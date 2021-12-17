@@ -14,7 +14,7 @@ export class UpdateProductDto{
 
     @IsOptional()
     @IsString()
-    @Matches(/^([\w ]{15, 700})?$/i)
+    @Matches(/^(|.{10,500})$/i)
     description?: string
 
     @IsNotEmpty()
