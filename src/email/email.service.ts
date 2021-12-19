@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer'
+import * as nodeMailGun from 'nodemailer-mailgun-transport'
 import * as fs from 'fs'
 import * as path from 'path'
 import handlebars from 'handlebars'
@@ -14,15 +15,15 @@ export interface MailOptions{
 @Injectable()
 export class EmailService {
     constructor(private configService: ConfigService){}
-
     async sendMail(options: MailOptions){
-        const transporter = nodemailer.createTransport({
-            service: 'Gmail',
-            auth: {
-                user: this.configService.get('GMAIL_USER'),
-                pass: this.configService.get('GMAIL_PASSWORD'),
-            },
-        });
+        const transporter = nodemailer.createTransport(nodeMailGun(
+            {
+                auth: {
+                    api_key: this.configService.get('MAILGUN_API_KEY'),
+                    domain: this.configService.get('MAILGUN_DOMAIN')
+                }
+            }
+        ));
         const mailOptions = {
             from: `"${this.configService.get('FROM_NAME')}" <${this.configService.get('FROM_EMAIL')}>`,
             to: `${options.email}`,
