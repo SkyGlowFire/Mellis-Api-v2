@@ -126,7 +126,7 @@ export class CategoriesService {
             const path = [...category.path]
             path[category.level] = dto.title
             const pathString = path.map(x => capitalize(x)).join('/')
-            await this.productModel.updateMany({category: id}, {'$set': {[`path.${category.level}`]: fromUrlString(dto.title), pathString}})
+            await this.productModel.updateMany({category: {'$in': ids}}, {'$set': {[`path.${category.level}`]: fromUrlString(dto.title), pathString}})
         }
         return await this.categoryModel.findByIdAndUpdate(id, {...dto, title: toUrlString(dto.title)}, {new: true})
     }
