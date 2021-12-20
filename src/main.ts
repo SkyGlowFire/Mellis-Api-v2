@@ -30,6 +30,8 @@ async function bootstrap() {
   const corsWhitelist = [
     'http://localhost:3000', 
     'http://localhost:3001', 
+    'http://www.mellis-webstore.com',
+    'http://mellis-webstore.com/',
     configService.get('CLIENT_URI'), 
     configService.get('ADMIN_CONSOLE_URI')
   ]

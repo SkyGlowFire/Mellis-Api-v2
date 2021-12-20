@@ -101,6 +101,7 @@ export class ProductsService {
 
     async getByCategory(path: IPath, filters: IFilters): Promise<IProductsResponse>{
         const category = await this.categoriesService.getCategoryByPath(path)
+        console.log('category', category)
         let queryOptions: FilterQuery<ProductDocument> = {enable: true}
         queryOptions['path.0'] = fromUrlString(path.categoryName)
         if(path.groupName){
@@ -136,6 +137,7 @@ export class ProductsService {
             const sortType = filters.sort.slice(1, -1)
             query = query.sort(sortOptions[sortType])
         }      
+        console.log('queryOptions', queryOptions)
         const products = await query
         
         return {count: products.length, products, minPrice, maxPrice, category}
