@@ -75,7 +75,7 @@ export class CategoriesService {
                 throw new BadRequestException(`Category with name ${title} already exists in category ${parentCategory.title}`)
             }
             parents = [...parentCategory.parents, parentCategory.id]
-            path = [...parentCategory.path, title]
+            path = [...parentCategory.path, fromUrlString(title)]
             level = parentCategory.level + 1
         }
         const category = await this.categoryModel.create({...dto, parents, level, path, title: toUrlString(dto.title)})
