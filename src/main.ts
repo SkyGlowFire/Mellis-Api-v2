@@ -34,6 +34,8 @@ async function bootstrap() {
     'http://mellis-webstore.com/',
     'https://www.mellis-webstore.com',
     'https://mellis-webstore.com/',
+    'https://admin.mellis-webstore.com/',
+    'http://admin.mellis-webstore.com/',
     configService.get('CLIENT_URI'), 
     configService.get('ADMIN_CONSOLE_URI')
   ]
