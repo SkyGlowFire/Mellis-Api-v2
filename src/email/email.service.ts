@@ -21,7 +21,6 @@ export class EmailService {
                 auth: {
                     api_key: this.configService.get('MAILGUN_API_KEY'),
                     domain: this.configService.get('MAILGUN_DOMAIN'),
-                    host: "api.eu.mailgun.net"
                 }
             }
         ));
