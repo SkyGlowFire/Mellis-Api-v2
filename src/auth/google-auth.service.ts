@@ -23,6 +23,8 @@ export class GoogleAutService{
 
     async authenticate(token: string): Promise<UserDocument>{
         const tokenInfo = await this.oauthClient.getTokenInfo(token)
+        console.log('token', token)
+        console.log('tokenInfo', tokenInfo)
         const {sub, email} = tokenInfo
         let user = await this.usersService.getByGoogleId(sub)
         if(user) return user
