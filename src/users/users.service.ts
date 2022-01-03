@@ -74,6 +74,7 @@ export class UsersService {
         if(password){
             const user = await this.userModel.findById(id).select('+password +hasPassword')
             if(user.hasPassword){
+                if(!dto.oldPassword) throw new ForbiddenException('Please provide old password')
                 const passwMatch = await bcrypt.compare(dto.oldPassword, user.password)
                 if(!passwMatch) throw new ForbiddenException('Wrong password')
             } 
