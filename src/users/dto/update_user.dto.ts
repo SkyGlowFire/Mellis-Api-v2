@@ -19,7 +19,7 @@ export class UpdateUserDto{
     @Matches(/^((?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,15})?$/, {message: 'Password must contain at least one character and one number, and must be between 8 and 15 characters length'})
     password: string;
 
-    @ValidateIf(o => Boolean(o.password))
-    @IsNotEmpty()
+    // @ValidateIf(o => Boolean(o.password))
+    // @IsNotEmpty()
     oldPassword: string;
 }

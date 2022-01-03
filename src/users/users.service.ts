@@ -72,9 +72,11 @@ export class UsersService {
         const updateOptions: UpdateQuery<UserDocument> = {['$set']: {}}
         const {oldPassword, password, ...data} = dto
         if(password){
-            const user = await this.userModel.findById(id).select('+password')
-            const passwMatch = await bcrypt.compare(dto.oldPassword, user.password)
-            if(!passwMatch) throw new ForbiddenException('Wrong password')
+            const user = await this.userModel.findById(id).select('+password +hasPassword')
+            if(user.hasPassword){
+                const passwMatch = await bcrypt.compare(dto.oldPassword, user.password)
+                if(!passwMatch) throw new ForbiddenException('Wrong password')
+            } 
             const salt = await bcrypt.genSalt(10)
             const newPassword = await bcrypt.hash(password, salt)
             updateOptions['$set'].password = newPassword
